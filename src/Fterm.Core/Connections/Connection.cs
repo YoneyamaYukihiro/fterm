@@ -33,6 +33,8 @@ public sealed record Connection
     public string Encoding { get; init; } = "utf-8";
     public string TerminalType { get; init; } = "xterm-256color";
     public IReadOnlyList<string> Tags { get; init; } = [];
+    /// <summary>接続直後に走らせるマクロスクリプト（DSL は Fterm.Core.Macros.Macro 参照）。</summary>
+    public string OnConnectMacro { get; init; } = "";
 
     public static Connection NewSsh(string name, string host, string username) => new()
     {

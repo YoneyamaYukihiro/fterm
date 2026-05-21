@@ -96,6 +96,31 @@ public sealed class TerminalBuffer
 
     public void Bump() => RevisionCounter++;
 
+    /// <summary>
+    /// 主画面の中だけを対象に部分一致検索する。スクロールバックは対象外（M6 簡易実装）。
+    /// 返却値は (row, startCol, length) の一覧。
+    /// </summary>
+    public List<(int Row, int Col, int Length)> Find(string pattern, bool caseSensitive = false)
+    {
+        var hits = new List<(int, int, int)>();
+        if (string.IsNullOrEmpty(pattern)) return hits;
+        var cmp = caseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
+        for (var r = 0; r < Rows; r++)
+        {
+            var row = Active[r];
+            var line = new string(row.Select(c => c.Char).ToArray());
+            var idx = 0;
+            while (idx <= line.Length - pattern.Length)
+            {
+                var found = line.IndexOf(pattern, idx, cmp);
+                if (found < 0) break;
+                hits.Add((r, found, pattern.Length));
+                idx = found + pattern.Length;
+            }
+        }
+        return hits;
+    }
+
     public void Resize(int cols, int rows)
     {
         Cols = cols;

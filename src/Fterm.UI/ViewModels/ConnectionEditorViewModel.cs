@@ -54,6 +54,9 @@ public sealed partial class ConnectionEditorViewModel : ViewModelBase
     [ObservableProperty]
     private string _tagsText = "";
 
+    [ObservableProperty]
+    private string _onConnectMacro = "";
+
     /// <summary>OK 押下後にダイアログを閉じる側へ渡される、構築済みの Connection。null なら未保存。</summary>
     [ObservableProperty]
     private Connection? _result;
@@ -94,6 +97,7 @@ public sealed partial class ConnectionEditorViewModel : ViewModelBase
         Encoding = existing.Encoding;
         TerminalType = existing.TerminalType;
         TagsText = string.Join(", ", existing.Tags);
+        OnConnectMacro = existing.OnConnectMacro;
     }
 
     public async Task LoadCredentialsAsync(Guid? currentCredentialId)
@@ -158,6 +162,7 @@ public sealed partial class ConnectionEditorViewModel : ViewModelBase
             Encoding = Encoding,
             TerminalType = TerminalType,
             Tags = ParseTags(TagsText),
+            OnConnectMacro = OnConnectMacro ?? "",
         };
     }
 

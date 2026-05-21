@@ -30,9 +30,22 @@
         </DataTemplate>
 
         <DataTemplate x:Key="TerminalTabTemplate" x:DataType="vm:TerminalTabViewModel">
-            <ctl:TerminalControl x:Name="Terminal" Emulator="{Binding Emulator}"
-                                 UserInput="OnTerminalUserInput"
-                                 UserResize="OnTerminalUserResize" />
+            <Grid>
+                <ctl:TerminalControl x:Name="Terminal" Emulator="{Binding Emulator}"
+                                     SearchHits="{Binding SearchHits}"
+                                     UserInput="OnTerminalUserInput"
+                                     UserResize="OnTerminalUserResize" />
+                <Border IsVisible="{Binding SearchVisible}"
+                        HorizontalAlignment="Right" VerticalAlignment="Top"
+                        Margin="0,8,12,0" Padding="6"
+                        Background="#2d2d2d" BorderBrush="#555" BorderThickness="1" CornerRadius="3">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <TextBox Width="200" Text="{Binding SearchText}" Watermark="検索 (Esc で閉じる)" KeyDown="OnSearchKeyDown" />
+                        <TextBlock Text="{Binding SearchStatus}" Foreground="#bbb" VerticalAlignment="Center" />
+                        <Button Content="×" Command="{Binding HideSearchCommand}" />
+                    </StackPanel>
+                </Border>
+            </Grid>
         </DataTemplate>
 
         <DataTemplate x:Key="FileTabTemplate" x:DataType="vm:FileTabViewModel">
@@ -54,7 +67,7 @@
             <MenuItem Header="編集(_E)">
                 <MenuItem Header="コピー" InputGesture="Ctrl+C" />
                 <MenuItem Header="貼り付け" InputGesture="Ctrl+V" />
-                <MenuItem Header="検索..." InputGesture="Ctrl+F" />
+                <MenuItem Header="検索..." InputGesture="Ctrl+F" Click="OnFindMenuClicked" />
             </MenuItem>
             <MenuItem Header="表示(_V)">
                 <MenuItem Header="サイドパネル" InputGesture="F9" />
@@ -72,7 +85,7 @@
                 <MenuItem Header="転送キューを開く" InputGesture="Ctrl+J" />
             </MenuItem>
             <MenuItem Header="設定(_S)">
-                <MenuItem Header="環境設定..." InputGesture="Ctrl+," />
+                <MenuItem Header="環境設定..." InputGesture="Ctrl+," Click="OnPreferencesClicked" />
             </MenuItem>
             <MenuItem Header="ヘルプ(_H)">
                 <MenuItem Header="バージョン情報" />

@@ -1,0 +1,33 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:Fterm.UI.ViewModels"
+        x:Class="Fterm.UI.Views.SettingsDialog"
+        x:DataType="vm:SettingsViewModel"
+        Title="環境設定" Width="480" SizeToContent="Height"
+        WindowStartupLocation="CenterOwner">
+    <DockPanel Margin="16">
+        <Border DockPanel.Dock="Bottom" Margin="0,16,0,0">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+                <Button Content="保存" IsDefault="True" Command="{Binding SaveCommand}" Click="OnSave" MinWidth="100" />
+                <Button Content="キャンセル" IsCancel="True" Command="{Binding CancelCommand}" Click="OnCancel" MinWidth="100" />
+            </StackPanel>
+        </Border>
+
+        <Grid ColumnDefinitions="180,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto">
+            <TextBlock Grid.Row="0" Grid.Column="0" Text="テーマ" VerticalAlignment="Center" Margin="0,6" />
+            <ComboBox Grid.Row="0" Grid.Column="1" ItemsSource="{Binding Themes}" SelectedItem="{Binding Theme}" HorizontalAlignment="Stretch" Margin="0,3" />
+
+            <TextBlock Grid.Row="1" Grid.Column="0" Text="言語" VerticalAlignment="Center" Margin="0,6" />
+            <ComboBox Grid.Row="1" Grid.Column="1" ItemsSource="{Binding Languages}" SelectedItem="{Binding Language}" HorizontalAlignment="Stretch" Margin="0,3" />
+
+            <TextBlock Grid.Row="2" Grid.Column="0" Text="スクロールバック行数" VerticalAlignment="Center" Margin="0,6" />
+            <NumericUpDown Grid.Row="2" Grid.Column="1" Value="{Binding ScrollbackLines}" Minimum="1000" Maximum="100000" Increment="1000" Margin="0,3" />
+
+            <TextBlock Grid.Row="3" Grid.Column="0" Text="転送同時実行数" VerticalAlignment="Center" Margin="0,6" />
+            <NumericUpDown Grid.Row="3" Grid.Column="1" Value="{Binding TransferConcurrency}" Minimum="1" Maximum="16" Increment="1" Margin="0,3" />
+
+            <TextBlock Grid.Row="4" Grid.Column="0" Text="ログ保持日数" VerticalAlignment="Center" Margin="0,6" />
+            <NumericUpDown Grid.Row="4" Grid.Column="1" Value="{Binding LogRetentionDays}" Minimum="1" Maximum="365" Increment="1" Margin="0,3" />
+        </Grid>
+    </DockPanel>
+</Window>

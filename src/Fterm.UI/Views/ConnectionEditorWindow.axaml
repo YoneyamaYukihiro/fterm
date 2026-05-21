@@ -77,6 +77,15 @@
                 </Grid>
             </TabItem>
 
+            <TabItem Header="マクロ">
+                <DockPanel Margin="6,10">
+                    <TextBlock DockPanel.Dock="Top" Foreground="#aaa" Margin="0,0,0,4" TextWrapping="Wrap"
+                               Text="接続直後に実行されるマクロ。例:&#x0a;sleep 500&#x0a;send &quot;ls -la\r&quot;" />
+                    <TextBox Text="{Binding OnConnectMacro}" AcceptsReturn="True" TextWrapping="NoWrap"
+                             FontFamily="Cascadia Mono,Consolas,Menlo,Monospace" MinHeight="180" />
+                </DockPanel>
+            </TabItem>
+
             <TabItem Header="ファイル" IsEnabled="{Binding IsFileLike}">
                 <Grid ColumnDefinitions="160,*" RowDefinitions="Auto,Auto" Margin="6,10">
                     <TextBlock Grid.Row="0" Grid.Column="0" Text="初期リモート" VerticalAlignment="Center" Margin="0,6" />

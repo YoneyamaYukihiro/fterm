@@ -19,10 +19,19 @@ public sealed class TerminalControl : Control
     public static readonly StyledProperty<TerminalEmulator?> EmulatorProperty =
         AvaloniaProperty.Register<TerminalControl, TerminalEmulator?>(nameof(Emulator));
 
+    public static readonly StyledProperty<IReadOnlyList<(int Row, int Col, int Length)>?> SearchHitsProperty =
+        AvaloniaProperty.Register<TerminalControl, IReadOnlyList<(int Row, int Col, int Length)>?>(nameof(SearchHits));
+
     public TerminalEmulator? Emulator
     {
         get => GetValue(EmulatorProperty);
         set => SetValue(EmulatorProperty, value);
+    }
+
+    public IReadOnlyList<(int Row, int Col, int Length)>? SearchHits
+    {
+        get => GetValue(SearchHitsProperty);
+        set => SetValue(SearchHitsProperty, value);
     }
 
     public event EventHandler<TerminalInputEventArgs>? UserInput;
@@ -88,6 +97,15 @@ public sealed class TerminalControl : Control
             var y = buf.Active.CursorRow * _cellH;
             ctx.FillRectangle(new SolidColorBrush(Avalonia.Media.Color.FromArgb(0x80, 0xdc, 0xdc, 0xdc)),
                 new Rect(x, y, _cellW, _cellH));
+        }
+
+        if (SearchHits is { Count: > 0 } hits)
+        {
+            var hitBrush = new SolidColorBrush(Avalonia.Media.Color.FromArgb(0x80, 0xff, 0xd7, 0x00));
+            foreach (var (row, col, len) in hits)
+            {
+                ctx.FillRectangle(hitBrush, new Rect(col * _cellW, row * _cellH, len * _cellW, _cellH));
+            }
         }
     }
 

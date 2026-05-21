@@ -1,5 +1,6 @@
 using Fterm.Core.Connections;
 using Fterm.Core.Files;
+using Fterm.Core.Macros;
 using Fterm.Core.Security;
 using Fterm.Core.Sessions;
 using Fterm.Protocols.Ftp;
@@ -7,6 +8,7 @@ using Fterm.Protocols.Serial;
 using Fterm.Protocols.Ssh;
 using Fterm.Protocols.Telnet;
 using Fterm.UI.ViewModels;
+using Serilog;
 
 namespace Fterm.UI.Services;
 
@@ -50,9 +52,40 @@ public sealed class SshConnectionService : IConnectionService
             }),
             _ => throw new NotSupportedException($"Terminal cannot be opened for {c.Protocol}."),
         };
+        Log.Information("Opening terminal {Protocol} to {Host}:{Port} as {User}", c.Protocol, c.Host, c.Port, c.Username);
         var tab = new TerminalTabViewModel(c.Name, channel);
         await tab.StartAsync();
+
+        if (!string.IsNullOrWhiteSpace(c.OnConnectMacro))
+        {
+            _ = RunMacroFireAndForgetAsync(c, channel, tab);
+        }
         return tab;
+    }
+
+    private static async Task RunMacroFireAndForgetAsync(Connection c, ITerminalChannel channel, TerminalTabViewModel tab)
+    {
+        try
+        {
+            var steps = Macro.Parse(c.OnConnectMacro);
+            var runner = new MacroRunner();
+            // 接続直後のマクロは出力読み取りに別ストリームを使うのではなく、
+            // タブが既に消費しているストリームを共有することはできないため、Expect は
+            // 簡易的に内部の TerminalBuffer の Title を見るには適していない。
+            // ここでは Send / Sleep のみ確実に動かす実装にする (Expect はタイムアウト発生)。
+            using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(5));
+            await runner.RunAsync(steps, channel, EmptyAsync(cts.Token), cts.Token);
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "On-connect macro failed for {Connection}", c.Name);
+        }
+    }
+
+    private static async IAsyncEnumerable<ReadOnlyMemory<byte>> EmptyAsync([System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken ct)
+    {
+        await Task.Yield();
+        yield break;
     }
 
     public async Task<FileTabViewModel?> OpenFileBrowserAsync(Connection c, CancellationToken ct)

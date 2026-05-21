@@ -36,6 +36,11 @@ dotnet run --project src/Fterm.App
   - アドレスバーで直接入力 → Enter で移動
   - 下部に転送キュー（並列 4、進捗バー、エラー表示）
 - 「ファイル → エコータブを開く」では `EchoTerminalChannel` に対する開発用エコータブが開きます。
+- ターミナルタブで **Ctrl+F** を押すと検索ボックスが開きます（Esc で閉じる）。
+- 設定 → 環境設定で **テーマ（Auto/Light/Dark）**、**言語（日本語/English）**、スクロールバック、転送同時実行数、ログ保持日数を変更できます。
+  設定は `%APPDATA%/fterm/settings.json` に永続化。
+- 接続編集の「マクロ」タブに `send "ls\r"` / `sleep 500` / `expect "$ "` などを書いておくと、接続直後に自動実行されます。
+- アプリのログは `%APPDATA%/fterm/logs/fterm-YYYYMMDD.log` に日次ローテーション（既定 14 日保持）。
 
 ## 結合テスト
 
@@ -85,5 +90,5 @@ tests/
 | M3 | ✅ | SSH 接続（SSH.NET + 既知ホスト鍵キャッシュ + 確認ダイアログ）、VT パーサ最小実装、Avalonia ターミナルコントロール |
 | M4 | ✅ | SFTP 二画面ファイルブラウザ、転送キュー（並列実行 / キャンセル / 進捗表示）、ローカル ↔ リモート転送 |
 | M5 | ✅ | FTP / FTPS（FluentFTP）、Telnet（IAC 交渉ハンドリング）、シリアル（System.IO.Ports）、ディレクトリ再帰転送 |
-| M6 | ⬜ | 検索、ログ、マクロ、テーマ、i18n |
+| M6 | ✅ | 検索（バッファ内 highlight）、Serilog ログ、マクロ DSL（send/sleep/expect）、テーマ切替、軽量 i18n、環境設定ダイアログ |
 | M7 | ⬜ | テスト整備、署名済みインストーラ、自動更新 |

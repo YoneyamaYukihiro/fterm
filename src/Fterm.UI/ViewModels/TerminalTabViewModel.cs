@@ -1,4 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using Fterm.Core.Sessions;
 using Fterm.Terminal.Buffer;
 using Fterm.Terminal.Emulator;
@@ -24,6 +25,18 @@ public sealed partial class TerminalTabViewModel : ViewModelBase, IAsyncDisposab
 
     [ObservableProperty]
     private bool _isConnected;
+
+    [ObservableProperty]
+    private bool _searchVisible;
+
+    [ObservableProperty]
+    private string _searchText = "";
+
+    [ObservableProperty]
+    private string _searchStatus = "";
+
+    /// <summary>検索ヒット位置 (row, col, length)。TerminalControl が読んで描画する。</summary>
+    public List<(int Row, int Col, int Length)> SearchHits { get; private set; } = [];
 
     public TerminalTabViewModel(string title, ITerminalChannel channel, int initialCols = 100, int initialRows = 30)
     {
@@ -72,5 +85,26 @@ public sealed partial class TerminalTabViewModel : ViewModelBase, IAsyncDisposab
         await _cts.CancelAsync();
         await _channel.DisposeAsync();
         _cts.Dispose();
+    }
+
+    [RelayCommand]
+    public void ShowSearch() { SearchVisible = true; }
+
+    [RelayCommand]
+    public void HideSearch()
+    {
+        SearchVisible = false;
+        SearchText = "";
+        SearchHits.Clear();
+        Buffer.Bump();
+    }
+
+    partial void OnSearchTextChanged(string value)
+    {
+        SearchHits = Buffer.Find(value);
+        SearchStatus = SearchHits.Count == 0 && !string.IsNullOrEmpty(value)
+            ? "(該当なし)"
+            : SearchHits.Count > 0 ? $"{SearchHits.Count} 件" : "";
+        Buffer.Bump();
     }
 }
