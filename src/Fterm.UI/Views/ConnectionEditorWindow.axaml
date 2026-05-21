@@ -1,0 +1,91 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:Fterm.UI.ViewModels"
+        x:Class="Fterm.UI.Views.ConnectionEditorWindow"
+        x:DataType="vm:ConnectionEditorViewModel"
+        Title="接続の編集"
+        Width="560" Height="640"
+        WindowStartupLocation="CenterOwner">
+
+    <DockPanel Margin="14">
+        <Border DockPanel.Dock="Bottom" Margin="0,12,0,0">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+                <Button Content="保存" IsDefault="True" Command="{Binding SaveCommand}" Click="OnSaveClicked" MinWidth="100" />
+                <Button Content="キャンセル" IsCancel="True" Command="{Binding CancelCommand}" Click="OnCancelClicked" MinWidth="100" />
+            </StackPanel>
+        </Border>
+
+        <TabControl>
+            <TabItem Header="基本">
+                <Grid ColumnDefinitions="140,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto" Margin="6,10">
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="名前" VerticalAlignment="Center" Margin="0,6" />
+                    <TextBox  Grid.Row="0" Grid.Column="1" Text="{Binding Name}" Margin="0,3" />
+
+                    <TextBlock Grid.Row="1" Grid.Column="0" Text="プロトコル" VerticalAlignment="Center" Margin="0,6" />
+                    <ComboBox  Grid.Row="1" Grid.Column="1" ItemsSource="{Binding Protocols}" SelectedItem="{Binding Protocol}" HorizontalAlignment="Stretch" Margin="0,3" />
+
+                    <TextBlock Grid.Row="2" Grid.Column="0" Text="ホスト" VerticalAlignment="Center" Margin="0,6" />
+                    <TextBox  Grid.Row="2" Grid.Column="1" Text="{Binding Host}" Margin="0,3" />
+
+                    <TextBlock Grid.Row="3" Grid.Column="0" Text="ポート" VerticalAlignment="Center" Margin="0,6" />
+                    <NumericUpDown Grid.Row="3" Grid.Column="1" Value="{Binding Port}" Minimum="1" Maximum="65535" Increment="1" Margin="0,3" />
+
+                    <TextBlock Grid.Row="4" Grid.Column="0" Text="ユーザ名" VerticalAlignment="Center" Margin="0,6" />
+                    <TextBox  Grid.Row="4" Grid.Column="1" Text="{Binding Username}" Margin="0,3" />
+
+                    <TextBlock Grid.Row="5" Grid.Column="0" Text="タグ (カンマ区切り)" VerticalAlignment="Center" Margin="0,6" />
+                    <TextBox  Grid.Row="5" Grid.Column="1" Text="{Binding TagsText}" Watermark="prod, web, jp" Margin="0,3" />
+                </Grid>
+            </TabItem>
+
+            <TabItem Header="認証">
+                <Grid ColumnDefinitions="160,*" RowDefinitions="Auto,Auto,Auto,Auto" Margin="6,10">
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="認証方法" VerticalAlignment="Center" Margin="0,6" />
+                    <ComboBox  Grid.Row="0" Grid.Column="1" ItemsSource="{Binding AuthMethods}" SelectedItem="{Binding AuthMethod}" HorizontalAlignment="Stretch" Margin="0,3" />
+
+                    <TextBlock Grid.Row="1" Grid.Column="0" Text="既存の資格情報" VerticalAlignment="Center" Margin="0,6" />
+                    <ComboBox  Grid.Row="1" Grid.Column="1" ItemsSource="{Binding Credentials}" SelectedItem="{Binding SelectedCredential}" HorizontalAlignment="Stretch" Margin="0,3">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <TextBlock Text="{Binding Name}" />
+                                    <TextBlock Text="{Binding Kind}" Foreground="#888" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+
+                    <TextBlock Grid.Row="2" Grid.Column="0" Text="新規パスワード" VerticalAlignment="Center" Margin="0,6" />
+                    <TextBox  Grid.Row="2" Grid.Column="1" Text="{Binding NewPassword}" PasswordChar="●" Watermark="入力すると新規 Credential として保存" Margin="0,3" />
+
+                    <TextBlock Grid.Row="3" Grid.ColumnSpan="2" Foreground="#888" FontSize="11" TextWrapping="Wrap" Margin="0,8,0,0"
+                               Text="※ パスワードと秘密鍵は AES-GCM で暗号化されて %APPDATA%/fterm/credentials.json に保存されます。" />
+                </Grid>
+            </TabItem>
+
+            <TabItem Header="ターミナル" IsEnabled="{Binding IsSshLike}">
+                <Grid ColumnDefinitions="160,*" RowDefinitions="Auto,Auto" Margin="6,10">
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="文字コード" VerticalAlignment="Center" Margin="0,6" />
+                    <ComboBox  Grid.Row="0" Grid.Column="1" SelectedItem="{Binding Encoding}" HorizontalAlignment="Stretch" Margin="0,3">
+                        <ComboBoxItem Content="utf-8" />
+                        <ComboBoxItem Content="shift_jis" />
+                        <ComboBoxItem Content="euc-jp" />
+                    </ComboBox>
+
+                    <TextBlock Grid.Row="1" Grid.Column="0" Text="TERM" VerticalAlignment="Center" Margin="0,6" />
+                    <TextBox  Grid.Row="1" Grid.Column="1" Text="{Binding TerminalType}" Margin="0,3" />
+                </Grid>
+            </TabItem>
+
+            <TabItem Header="ファイル" IsEnabled="{Binding IsFileLike}">
+                <Grid ColumnDefinitions="160,*" RowDefinitions="Auto,Auto" Margin="6,10">
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="初期リモート" VerticalAlignment="Center" Margin="0,6" />
+                    <TextBox  Grid.Row="0" Grid.Column="1" Text="{Binding InitialRemoteDirectory}" Margin="0,3" />
+
+                    <TextBlock Grid.Row="1" Grid.Column="0" Text="初期ローカル" VerticalAlignment="Center" Margin="0,6" />
+                    <TextBox  Grid.Row="1" Grid.Column="1" Text="{Binding InitialLocalDirectory}" Margin="0,3" />
+                </Grid>
+            </TabItem>
+        </TabControl>
+    </DockPanel>
+</Window>

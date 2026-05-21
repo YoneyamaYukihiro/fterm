@@ -14,5 +14,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Fterm.UI\Fterm.UI.csproj" />
+    <ProjectReference Include="..\Fterm.Security\Fterm.Security.csproj" />
   </ItemGroup>
 </Project>

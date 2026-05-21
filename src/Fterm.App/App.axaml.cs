@@ -2,6 +2,9 @@ using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using Fterm.Core.Connections;
+using Fterm.Core.Security;
+using Fterm.Security;
+using Fterm.UI.Services;
 using Fterm.UI.ViewModels;
 using Fterm.UI.Views;
 
@@ -18,11 +21,14 @@ public partial class App : Application
     {
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            var store = new JsonConnectionStore(JsonConnectionStore.DefaultPath());
-            desktop.MainWindow = new MainWindow
-            {
-                DataContext = new MainWindowViewModel(store),
-            };
+            IConnectionStore connectionStore = new JsonConnectionStore(JsonConnectionStore.DefaultPath());
+            var masterKey = MasterKeyProvider.GetOrCreate(MasterKeyProvider.DefaultPath());
+            ICredentialStore credentialStore = new EncryptedCredentialStore(EncryptedCredentialStore.DefaultPath(), masterKey);
+
+            var window = new MainWindow();
+            var editorService = new ConnectionEditorService(window, credentialStore);
+            window.DataContext = new MainWindowViewModel(connectionStore, credentialStore, editorService);
+            desktop.MainWindow = window;
         }
         base.OnFrameworkInitializationCompleted();
     }

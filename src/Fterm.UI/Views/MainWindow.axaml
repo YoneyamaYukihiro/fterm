@@ -19,7 +19,7 @@
     <DockPanel>
         <Menu DockPanel.Dock="Top">
             <MenuItem Header="ファイル(_F)">
-                <MenuItem Header="新規接続(_N)..." InputGesture="Ctrl+N" />
+                <MenuItem Header="新規接続(_N)..." InputGesture="Ctrl+N" Command="{Binding NewConnectionCommand}" />
                 <MenuItem Header="クイック接続(_Q)..." InputGesture="Ctrl+Shift+N" />
                 <Separator />
                 <MenuItem Header="エコータブを開く(_E)" Command="{Binding NewEchoTabCommand}" />
@@ -35,7 +35,11 @@
                 <MenuItem Header="サイドパネル" InputGesture="F9" />
             </MenuItem>
             <MenuItem Header="接続(_C)">
-                <MenuItem Header="接続マネージャ..." />
+                <MenuItem Header="新規..." Command="{Binding NewConnectionCommand}" />
+                <MenuItem Header="編集..." Command="{Binding EditConnectionCommand}" />
+                <MenuItem Header="複製" Command="{Binding DuplicateConnectionCommand}" />
+                <MenuItem Header="削除" Command="{Binding DeleteConnectionCommand}" />
+                <Separator />
                 <MenuItem Header="切断" />
             </MenuItem>
             <MenuItem Header="転送(_T)">
@@ -51,13 +55,14 @@
 
         <Border DockPanel.Dock="Top" BorderBrush="#333" BorderThickness="0,0,0,1" Padding="6,4">
             <StackPanel Orientation="Horizontal" Spacing="6">
-                <Button Content="新規接続" />
-                <Button Content="切断" />
-                <Button Content="複製" />
+                <Button Content="新規接続" Command="{Binding NewConnectionCommand}" />
+                <Button Content="編集" Command="{Binding EditConnectionCommand}" />
+                <Button Content="複製" Command="{Binding DuplicateConnectionCommand}" />
+                <Button Content="削除" Command="{Binding DeleteConnectionCommand}" />
                 <Separator Width="1" Background="#555" Margin="4,0" />
-                <Button Content="SFTP" />
-                <Button Content="マクロ" />
-                <Button Content="設定" />
+                <Button Content="SFTP" IsEnabled="False" />
+                <Button Content="マクロ" IsEnabled="False" />
+                <Button Content="設定" IsEnabled="False" />
                 <Separator Width="1" Background="#555" Margin="4,0" />
                 <Button Content="エコータブ" Command="{Binding NewEchoTabCommand}" />
             </StackPanel>
@@ -67,16 +72,27 @@
             <TextBlock Text="{Binding StatusText}" />
         </Border>
 
-        <Grid ColumnDefinitions="220,4,*">
+        <Grid ColumnDefinitions="240,4,*">
             <Border Grid.Column="0" Background="#252526" BorderBrush="#333" BorderThickness="0,0,1,0">
                 <DockPanel>
                     <TextBlock DockPanel.Dock="Top" Text="接続帳" Foreground="#bbb" Margin="8" />
-                    <ListBox ItemsSource="{Binding Connections}">
+                    <ListBox ItemsSource="{Binding Connections}" SelectedItem="{Binding SelectedConnection}" DoubleTapped="OnConnectionDoubleTapped">
                         <ListBox.ItemTemplate>
                             <DataTemplate>
-                                <StackPanel>
-                                    <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
-                                    <TextBlock Text="{Binding Host}" Foreground="#888" FontSize="11" />
+                                <StackPanel Margin="2,4">
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
+                                        <Border Background="#3c5a78" CornerRadius="3" Padding="4,1">
+                                            <TextBlock Text="{Binding Protocol}" FontSize="10" Foreground="#dde" />
+                                        </Border>
+                                    </StackPanel>
+                                    <TextBlock Foreground="#888" FontSize="11">
+                                        <Run Text="{Binding Username}" />
+                                        <Run Text="@" />
+                                        <Run Text="{Binding Host}" />
+                                        <Run Text=":" />
+                                        <Run Text="{Binding Port}" />
+                                    </TextBlock>
                                 </StackPanel>
                             </DataTemplate>
                         </ListBox.ItemTemplate>

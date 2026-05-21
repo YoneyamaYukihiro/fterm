@@ -18,9 +18,16 @@ dotnet build fterm.slnx
 dotnet run --project src/Fterm.App
 ```
 
-起動すると空のメニューつきメインウィンドウが開きます。「ファイル → エコータブを開く」または
-ツールバーの「エコータブ」ボタンで、ダミーの `EchoTerminalChannel` に対して送受信できます
-（M3 で実 SSH に置き換え予定）。
+起動すると、メニュー / ツールバー / サイドパネル（接続帳）/ タブ領域 / ステータスバーで構成される
+メインウィンドウが開きます。
+
+- 「ファイル → 新規接続...」または「新規接続」ボタンで接続編集ダイアログを開けます。
+- 接続帳のリストから選んで「編集」「複製」「削除」が可能（ダブルクリックで編集）。
+- 接続データは `%APPDATA%/fterm/connections.json`、資格情報は AES-GCM で暗号化して
+  `%APPDATA%/fterm/credentials.json` に保存されます。マスター鍵は
+  `%APPDATA%/fterm/master.key`（非 Windows では 0600 権限）。
+- 「ファイル → エコータブを開く」では `EchoTerminalChannel` に対して送受信できます
+  （M3 で実 SSH に置き換え予定）。
 
 ## テスト
 
@@ -52,7 +59,7 @@ tests/
 |---|---|---|
 | M0 | ✅ | 設計確定 |
 | M1 | ✅ | プロジェクト雛形、空ウィンドウ + メニュー、`EchoTerminalChannel` で UI 結線確認 |
-| M2 | ⬜ | 接続マネージャ UI、資格情報ストア |
+| M2 | ✅ | 接続マネージャ UI（新規 / 編集 / 複製 / 削除）、AES-GCM 暗号化された資格情報ストア |
 | M3 | ⬜ | SSH 接続、VT パーサ最小実装 |
 | M4 | ⬜ | SFTP 二画面、転送キュー |
 | M5 | ⬜ | FTP / FTPS / Telnet / シリアル |

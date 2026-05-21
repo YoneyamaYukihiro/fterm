@@ -12,6 +12,7 @@
   <Folder Name="/tests/">
     <Project Path="tests/Fterm.Core.Tests/Fterm.Core.Tests.csproj" />
     <Project Path="tests/Fterm.Integration.Tests/Fterm.Integration.Tests.csproj" />
+    <Project Path="tests/Fterm.Security.Tests/Fterm.Security.Tests.csproj" />
     <Project Path="tests/Fterm.Terminal.Tests/Fterm.Terminal.Tests.csproj" />
   </Folder>
 </Solution>
