@@ -29,12 +29,24 @@ jobs:
       - name: Build
         run: dotnet build fterm.slnx --configuration Release --no-restore
 
-      - name: Test
-        run: dotnet test fterm.slnx --configuration Release --no-build --logger "trx;LogFileName=test-results.trx"
+      - name: Test (with coverage)
+        run: dotnet test fterm.slnx
+             --configuration Release
+             --no-build
+             --logger "trx;LogFileName=test-results.trx"
+             --collect:"XPlat Code Coverage"
+             --results-directory TestResults
 
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: test-results-${{ matrix.os }}
-          path: '**/TestResults/*.trx'
+          path: TestResults/**/*
+
+      - name: Upload coverage
+        if: matrix.os == 'ubuntu-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: TestResults/**/coverage.cobertura.xml

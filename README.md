@@ -59,7 +59,25 @@ FTERM_FTP_USER=youruser FTERM_FTP_PASS=yourpass \
 
 ```bash
 dotnet test fterm.slnx
+# カバレッジ付き
+dotnet test fterm.slnx --collect:"XPlat Code Coverage"
 ```
+
+## リリースビルド
+
+```bash
+./scripts/publish.sh 1.2.3
+# -> artifacts/<rid>/  と  artifacts/manifest.json
+```
+
+詳細は [`docs/RELEASE.md`](docs/RELEASE.md)（コード署名手順含む）を参照。
+
+CI: タグ `vX.Y.Z` を push すると `.github/workflows/release.yml` が
+4 RID 分の単一ファイル self-contained 成果物 + manifest.json を生成し
+GitHub Release に添付します。
+
+自動更新クライアントは環境変数 `FTERM_UPDATE_MANIFEST_URL` が設定されている場合、
+起動時にバックグラウンドでマニフェストを確認します。
 
 ## プロジェクト構成
 
@@ -91,4 +109,4 @@ tests/
 | M4 | ✅ | SFTP 二画面ファイルブラウザ、転送キュー（並列実行 / キャンセル / 進捗表示）、ローカル ↔ リモート転送 |
 | M5 | ✅ | FTP / FTPS（FluentFTP）、Telnet（IAC 交渉ハンドリング）、シリアル（System.IO.Ports）、ディレクトリ再帰転送 |
 | M6 | ✅ | 検索（バッファ内 highlight）、Serilog ログ、マクロ DSL（send/sleep/expect）、テーマ切替、軽量 i18n、環境設定ダイアログ |
-| M7 | ⬜ | テスト整備、署名済みインストーラ、自動更新 |
+| M7 | ✅ | カバレッジ収集、Avalonia.Headless UI スモーク、UpdateChecker（マニフェスト + SHA-256 検証）、マルチ RID self-contained 発行スクリプトとリリース CI、署名手順ドキュメント |

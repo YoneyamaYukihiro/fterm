@@ -16,5 +16,6 @@
     <Project Path="tests/Fterm.Protocols.Telnet.Tests/Fterm.Protocols.Telnet.Tests.csproj" />
     <Project Path="tests/Fterm.Security.Tests/Fterm.Security.Tests.csproj" />
     <Project Path="tests/Fterm.Terminal.Tests/Fterm.Terminal.Tests.csproj" />
+    <Project Path="tests/Fterm.UI.Tests/Fterm.UI.Tests.csproj" />
   </Folder>
 </Solution>
