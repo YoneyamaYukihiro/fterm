@@ -3,6 +3,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using Fterm.Core.Connections;
 using Fterm.Core.Security;
+using Fterm.Protocols.Ssh;
 using Fterm.Security;
 using Fterm.UI.Services;
 using Fterm.UI.ViewModels;
@@ -24,10 +25,13 @@ public partial class App : Application
             IConnectionStore connectionStore = new JsonConnectionStore(JsonConnectionStore.DefaultPath());
             var masterKey = MasterKeyProvider.GetOrCreate(MasterKeyProvider.DefaultPath());
             ICredentialStore credentialStore = new EncryptedCredentialStore(EncryptedCredentialStore.DefaultPath(), masterKey);
+            var knownHosts = new KnownHostsStore(KnownHostsStore.DefaultPath());
 
             var window = new MainWindow();
             var editorService = new ConnectionEditorService(window, credentialStore);
-            window.DataContext = new MainWindowViewModel(connectionStore, credentialStore, editorService);
+            var hostKeyPolicy = new InteractiveHostKeyPolicy(window);
+            var connectionService = new SshConnectionService(credentialStore, knownHosts, hostKeyPolicy);
+            window.DataContext = new MainWindowViewModel(connectionStore, credentialStore, editorService, connectionService);
             desktop.MainWindow = window;
         }
         base.OnFrameworkInitializationCompleted();

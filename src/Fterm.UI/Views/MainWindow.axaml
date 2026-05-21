@@ -1,6 +1,7 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:Fterm.UI.ViewModels"
+        xmlns:ctl="using:Fterm.UI.Controls"
         x:Class="Fterm.UI.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Title="fterm" Width="1100" Height="720">
@@ -16,12 +17,31 @@
         </Style>
     </Window.Styles>
 
+    <Window.Resources>
+        <DataTemplate x:Key="EchoTabTemplate" x:DataType="vm:TabItemViewModel">
+            <DockPanel>
+                <Grid DockPanel.Dock="Bottom" ColumnDefinitions="*,Auto" Margin="4">
+                    <TextBox Grid.Column="0" Text="{Binding Input}" Watermark="入力して Enter" />
+                    <Button Grid.Column="1" Content="送信" Margin="4,0,0,0" Command="{Binding SendCommand}" />
+                </Grid>
+                <TextBox Classes="terminal" IsReadOnly="True" Text="{Binding Output}" />
+            </DockPanel>
+        </DataTemplate>
+
+        <DataTemplate x:Key="TerminalTabTemplate" x:DataType="vm:TerminalTabViewModel">
+            <ctl:TerminalControl x:Name="Terminal" Emulator="{Binding Emulator}"
+                                 UserInput="OnTerminalUserInput"
+                                 UserResize="OnTerminalUserResize" />
+        </DataTemplate>
+    </Window.Resources>
+
     <DockPanel>
         <Menu DockPanel.Dock="Top">
             <MenuItem Header="ファイル(_F)">
                 <MenuItem Header="新規接続(_N)..." InputGesture="Ctrl+N" Command="{Binding NewConnectionCommand}" />
                 <MenuItem Header="クイック接続(_Q)..." InputGesture="Ctrl+Shift+N" />
                 <Separator />
+                <MenuItem Header="接続" Command="{Binding ConnectCommand}" InputGesture="Ctrl+Enter" />
                 <MenuItem Header="エコータブを開く(_E)" Command="{Binding NewEchoTabCommand}" />
                 <Separator />
                 <MenuItem Header="終了(_X)" />
@@ -40,7 +60,7 @@
                 <MenuItem Header="複製" Command="{Binding DuplicateConnectionCommand}" />
                 <MenuItem Header="削除" Command="{Binding DeleteConnectionCommand}" />
                 <Separator />
-                <MenuItem Header="切断" />
+                <MenuItem Header="接続" Command="{Binding ConnectCommand}" />
             </MenuItem>
             <MenuItem Header="転送(_T)">
                 <MenuItem Header="転送キューを開く" InputGesture="Ctrl+J" />
@@ -55,6 +75,8 @@
 
         <Border DockPanel.Dock="Top" BorderBrush="#333" BorderThickness="0,0,0,1" Padding="6,4">
             <StackPanel Orientation="Horizontal" Spacing="6">
+                <Button Content="接続" Command="{Binding ConnectCommand}" />
+                <Separator Width="1" Background="#555" Margin="4,0" />
                 <Button Content="新規接続" Command="{Binding NewConnectionCommand}" />
                 <Button Content="編集" Command="{Binding EditConnectionCommand}" />
                 <Button Content="複製" Command="{Binding DuplicateConnectionCommand}" />
@@ -104,21 +126,18 @@
 
             <TabControl Grid.Column="2" ItemsSource="{Binding Tabs}" SelectedItem="{Binding SelectedTab}">
                 <TabControl.ItemTemplate>
-                    <DataTemplate x:DataType="vm:TabItemViewModel">
+                    <DataTemplate>
                         <TextBlock Text="{Binding Title}" />
                     </DataTemplate>
                 </TabControl.ItemTemplate>
-                <TabControl.ContentTemplate>
+                <TabControl.DataTemplates>
                     <DataTemplate x:DataType="vm:TabItemViewModel">
-                        <DockPanel>
-                            <Grid DockPanel.Dock="Bottom" ColumnDefinitions="*,Auto" Margin="4">
-                                <TextBox Grid.Column="0" Text="{Binding Input}" Watermark="入力して Enter" />
-                                <Button Grid.Column="1" Content="送信" Margin="4,0,0,0" Command="{Binding SendCommand}" />
-                            </Grid>
-                            <TextBox Classes="terminal" IsReadOnly="True" Text="{Binding Output}" />
-                        </DockPanel>
+                        <ContentControl Content="{Binding}" ContentTemplate="{StaticResource EchoTabTemplate}" />
                     </DataTemplate>
-                </TabControl.ContentTemplate>
+                    <DataTemplate x:DataType="vm:TerminalTabViewModel">
+                        <ContentControl Content="{Binding}" ContentTemplate="{StaticResource TerminalTabTemplate}" />
+                    </DataTemplate>
+                </TabControl.DataTemplates>
             </TabControl>
         </Grid>
     </DockPanel>

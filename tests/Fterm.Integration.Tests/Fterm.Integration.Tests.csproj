@@ -10,5 +10,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\Fterm.Core\Fterm.Core.csproj" />
+    <ProjectReference Include="..\..\src\Fterm.Protocols.Ssh\Fterm.Protocols.Ssh.csproj" />
   </ItemGroup>
 </Project>

@@ -26,8 +26,19 @@ dotnet run --project src/Fterm.App
 - 接続データは `%APPDATA%/fterm/connections.json`、資格情報は AES-GCM で暗号化して
   `%APPDATA%/fterm/credentials.json` に保存されます。マスター鍵は
   `%APPDATA%/fterm/master.key`（非 Windows では 0600 権限）。
-- 「ファイル → エコータブを開く」では `EchoTerminalChannel` に対して送受信できます
-  （M3 で実 SSH に置き換え予定）。
+- 接続帳で接続を選んで「接続」ボタン（または Ctrl+Enter）で SSH ターミナルタブを開きます。
+  初回接続時はホスト鍵フィンガープリント確認ダイアログが出ます。
+- 「ファイル → エコータブを開く」では `EchoTerminalChannel` に対する開発用エコータブが開きます。
+
+## 結合テスト
+
+ローカルに sshd を立てて `FTERM_SSH_*` 環境変数を渡すと、SSH スモークテストが実行されます:
+
+```bash
+FTERM_SSH_HOST=127.0.0.1 FTERM_SSH_PORT=2222 \
+FTERM_SSH_USER=youruser FTERM_SSH_PASS=yourpass \
+  dotnet test tests/Fterm.Integration.Tests
+```
 
 ## テスト
 
@@ -60,7 +71,7 @@ tests/
 | M0 | ✅ | 設計確定 |
 | M1 | ✅ | プロジェクト雛形、空ウィンドウ + メニュー、`EchoTerminalChannel` で UI 結線確認 |
 | M2 | ✅ | 接続マネージャ UI（新規 / 編集 / 複製 / 削除）、AES-GCM 暗号化された資格情報ストア |
-| M3 | ⬜ | SSH 接続、VT パーサ最小実装 |
+| M3 | ✅ | SSH 接続（SSH.NET + 既知ホスト鍵キャッシュ + 確認ダイアログ）、VT パーサ最小実装、Avalonia ターミナルコントロール |
 | M4 | ⬜ | SFTP 二画面、転送キュー |
 | M5 | ⬜ | FTP / FTPS / Telnet / シリアル |
 | M6 | ⬜ | 検索、ログ、マクロ、テーマ、i18n |

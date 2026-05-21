@@ -12,27 +12,34 @@ public sealed partial class MainWindowViewModel : ViewModelBase
     private readonly IConnectionStore _store;
     private readonly ICredentialStore _credentials;
     private readonly IConnectionEditorService _editor;
+    private readonly IConnectionService _connector;
 
     [ObservableProperty]
     private string _statusText = "Ready";
 
     [ObservableProperty]
-    private TabItemViewModel? _selectedTab;
+    private ViewModelBase? _selectedTab;
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(EditConnectionCommand))]
     [NotifyCanExecuteChangedFor(nameof(DeleteConnectionCommand))]
     [NotifyCanExecuteChangedFor(nameof(DuplicateConnectionCommand))]
+    [NotifyCanExecuteChangedFor(nameof(ConnectCommand))]
     private Connection? _selectedConnection;
 
-    public ObservableCollection<TabItemViewModel> Tabs { get; } = [];
+    public ObservableCollection<ViewModelBase> Tabs { get; } = [];
     public ObservableCollection<Connection> Connections { get; } = [];
 
-    public MainWindowViewModel(IConnectionStore store, ICredentialStore credentials, IConnectionEditorService editor)
+    public MainWindowViewModel(
+        IConnectionStore store,
+        ICredentialStore credentials,
+        IConnectionEditorService editor,
+        IConnectionService connector)
     {
         _store = store;
         _credentials = credentials;
         _editor = editor;
+        _connector = connector;
     }
 
     public async Task InitializeAsync()
@@ -54,11 +61,32 @@ public sealed partial class MainWindowViewModel : ViewModelBase
         SelectedTab = tab;
     }
 
+    [RelayCommand(CanExecute = nameof(HasSelectedConnection))]
+    private async Task ConnectAsync()
+    {
+        if (SelectedConnection is null) return;
+        StatusText = $"接続中: {SelectedConnection.Name}";
+        try
+        {
+            var tab = await _connector.OpenTerminalAsync(SelectedConnection, CancellationToken.None);
+            if (tab is not null)
+            {
+                Tabs.Add(tab);
+                SelectedTab = tab;
+                StatusText = $"接続成功: {SelectedConnection.Name}";
+            }
+        }
+        catch (Exception ex)
+        {
+            StatusText = $"接続失敗: {ex.Message}";
+        }
+    }
+
     [RelayCommand]
-    private void CloseTab(TabItemViewModel tab)
+    private async Task CloseTabAsync(ViewModelBase tab)
     {
         Tabs.Remove(tab);
-        _ = tab.DisposeAsync();
+        if (tab is IAsyncDisposable d) await d.DisposeAsync();
     }
 
     [RelayCommand]

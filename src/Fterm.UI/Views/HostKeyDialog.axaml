@@ -1,0 +1,22 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="Fterm.UI.Views.HostKeyDialog"
+        Title="ホスト鍵の確認"
+        Width="520" SizeToContent="Height"
+        WindowStartupLocation="CenterOwner">
+    <StackPanel Margin="16" Spacing="10">
+        <TextBlock x:Name="HeaderText" FontSize="15" FontWeight="SemiBold" TextWrapping="Wrap" />
+        <Border BorderBrush="#555" BorderThickness="1" Padding="10" Background="#1e1e1e">
+            <StackPanel Spacing="4">
+                <TextBlock x:Name="HostText" Foreground="#bbb" />
+                <TextBlock x:Name="FingerprintText" FontFamily="Cascadia Mono,Consolas,Menlo,Monospace" Foreground="#dcdcdc" TextWrapping="Wrap" />
+            </StackPanel>
+        </Border>
+        <TextBlock x:Name="DetailText" Foreground="#aaa" TextWrapping="Wrap" />
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+            <Button Content="拒否" Click="OnReject" MinWidth="90" />
+            <Button Content="今回のみ許可" Click="OnAccept" MinWidth="120" />
+            <Button Content="許可して保存" Click="OnAcceptAndTrust" IsDefault="True" MinWidth="120" />
+        </StackPanel>
+    </StackPanel>
+</Window>
