@@ -12,6 +12,8 @@ public sealed class SftpFileChannelOptions
     public string? Password { get; init; }
     public string? PrivateKeyPem { get; init; }
     public string? PrivateKeyPassphrase { get; init; }
+    /// <summary>ProxyJump 用の踏み台チェーン (任意)。</summary>
+    public IReadOnlyList<SshProxyChainBuilder.HopSpec>? ProxyHops { get; init; }
 }
 
 /// <summary>
@@ -24,6 +26,7 @@ public sealed class SftpFileChannel : IFileChannel
     private readonly IHostKeyPolicy _hostKeyPolicy;
 
     private SftpClient? _client;
+    private SshProxyChain? _proxyChain;
 
     public SftpFileChannel(SftpFileChannelOptions options, KnownHostsStore knownHosts, IHostKeyPolicy hostKeyPolicy)
     {
@@ -34,8 +37,18 @@ public sealed class SftpFileChannel : IFileChannel
 
     public async Task ConnectAsync(CancellationToken ct)
     {
+        string connectHost = _options.Host;
+        int connectPort = _options.Port;
+        if (_options.ProxyHops is { Count: > 0 } hops)
+        {
+            var builder = new SshProxyChainBuilder(_knownHosts, _hostKeyPolicy);
+            _proxyChain = await Task.Run(() => builder.Build(hops, _options.Host, _options.Port, ct), ct);
+            connectHost = _proxyChain.LocalEndpoint.Host;
+            connectPort = _proxyChain.LocalEndpoint.Port;
+        }
+
         var auth = BuildAuthMethods().ToArray();
-        var info = new ConnectionInfo(_options.Host, _options.Port, _options.Username, auth);
+        var info = new ConnectionInfo(connectHost, connectPort, _options.Username, auth);
         _client = new SftpClient(info);
 
         Exception? hostKeyFailure = null;
@@ -134,9 +147,39 @@ public sealed class SftpFileChannel : IFileChannel
         await Task.Run(() => _client!.RenameFile(from, to), ct);
     }
 
+    public Task<bool> ExistsAsync(string path, CancellationToken ct)
+    {
+        EnsureConnected();
+        return Task.Run(() => _client!.Exists(path), ct);
+    }
+
+    public Task<long> GetSizeAsync(string path, CancellationToken ct)
+    {
+        EnsureConnected();
+        return Task.Run<long>(() =>
+        {
+            try
+            {
+                var attrs = _client!.GetAttributes(path);
+                return attrs.IsDirectory ? -1 : attrs.Size;
+            }
+            catch
+            {
+                return -1;
+            }
+        }, ct);
+    }
+
+    public Task<Stream> OpenAppendAsync(string path, CancellationToken ct)
+    {
+        EnsureConnected();
+        return Task.FromResult<Stream>(_client!.Open(path, FileMode.Append, FileAccess.Write));
+    }
+
     public ValueTask DisposeAsync()
     {
         _client?.Dispose();
+        _proxyChain?.Dispose();
         return ValueTask.CompletedTask;
     }
 

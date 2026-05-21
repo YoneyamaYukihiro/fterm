@@ -1,6 +1,7 @@
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Fterm.Core.Localization;
 using Fterm.Core.Settings;
 using Fterm.UI.Controls;
 using Fterm.UI.Services;
@@ -96,6 +97,7 @@ public partial class MainWindow : Window
         {
             await SettingsStore.SaveAsync(result);
             ThemeService?.Apply(result.Theme);
+            Localizer.Instance.Language = result.Language;
         }
     }
 }

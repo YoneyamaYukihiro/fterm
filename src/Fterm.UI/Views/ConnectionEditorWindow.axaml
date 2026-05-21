@@ -77,6 +77,41 @@
                 </Grid>
             </TabItem>
 
+            <TabItem Header="ProxyJump">
+                <DockPanel Margin="6,10">
+                    <TextBlock DockPanel.Dock="Top" Foreground="#aaa" Margin="0,0,0,4" TextWrapping="Wrap"
+                               Text="経由する踏み台 SSH 接続を順に選びます。先頭が最初に接続する踏み台。" />
+                    <Grid ColumnDefinitions="*,Auto,*" RowDefinitions="Auto,*">
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="使用しない接続" Foreground="#bbb" Margin="0,0,0,4" />
+                        <TextBlock Grid.Row="0" Grid.Column="2" Text="ProxyJump チェーン" Foreground="#bbb" Margin="0,0,0,4" />
+                        <ListBox Grid.Row="1" Grid.Column="0" x:Name="AvailableHopsList" ItemsSource="{Binding AvailableProxyHops}">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock>
+                                        <Run Text="{Binding Name}" /><Run Text=" (" /><Run Text="{Binding Username}" /><Run Text="@" /><Run Text="{Binding Host}" /><Run Text=")" />
+                                    </TextBlock>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                        <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Vertical" VerticalAlignment="Center" Margin="4" Spacing="4">
+                            <Button Content="→" Command="{Binding AddProxyHopCommand}" CommandParameter="{Binding #AvailableHopsList.SelectedItem}" />
+                            <Button Content="←" Command="{Binding RemoveProxyHopCommand}" CommandParameter="{Binding #ChainList.SelectedItem}" />
+                            <Button Content="↑" Command="{Binding MoveProxyHopUpCommand}" CommandParameter="{Binding #ChainList.SelectedItem}" />
+                            <Button Content="↓" Command="{Binding MoveProxyHopDownCommand}" CommandParameter="{Binding #ChainList.SelectedItem}" />
+                        </StackPanel>
+                        <ListBox Grid.Row="1" Grid.Column="2" x:Name="ChainList" ItemsSource="{Binding ProxyChain}">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock>
+                                        <Run Text="{Binding Name}" /><Run Text=" (" /><Run Text="{Binding Username}" /><Run Text="@" /><Run Text="{Binding Host}" /><Run Text=")" />
+                                    </TextBlock>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </Grid>
+                </DockPanel>
+            </TabItem>
+
             <TabItem Header="マクロ">
                 <DockPanel Margin="6,10">
                     <TextBlock DockPanel.Dock="Top" Foreground="#aaa" Margin="0,0,0,4" TextWrapping="Wrap"

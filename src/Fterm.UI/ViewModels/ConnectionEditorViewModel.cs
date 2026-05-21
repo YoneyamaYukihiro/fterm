@@ -10,6 +10,7 @@ namespace Fterm.UI.ViewModels;
 public sealed partial class ConnectionEditorViewModel : ViewModelBase
 {
     private readonly ICredentialStore _credentialStore;
+    private readonly IConnectionStore? _connectionStore;
 
     public Guid Id { get; }
     public bool IsNew { get; }
@@ -57,6 +58,12 @@ public sealed partial class ConnectionEditorViewModel : ViewModelBase
     [ObservableProperty]
     private string _onConnectMacro = "";
 
+    /// <summary>選択可能な ProxyJump 候補（編集中の接続自身は除外）。</summary>
+    public ObservableCollection<Connection> AvailableProxyHops { get; } = [];
+
+    /// <summary>順序付きで選択された踏み台チェーン。</summary>
+    public ObservableCollection<Connection> ProxyChain { get; } = [];
+
     /// <summary>OK 押下後にダイアログを閉じる側へ渡される、構築済みの Connection。null なら未保存。</summary>
     [ObservableProperty]
     private Connection? _result;
@@ -73,9 +80,10 @@ public sealed partial class ConnectionEditorViewModel : ViewModelBase
     public bool IsFileLike => Protocol is ProtocolKind.Sftp or ProtocolKind.Ftp or ProtocolKind.Ftps;
     public bool IsSerial => Protocol is ProtocolKind.Serial;
 
-    public ConnectionEditorViewModel(ICredentialStore credentialStore, Connection? existing)
+    public ConnectionEditorViewModel(ICredentialStore credentialStore, Connection? existing, IConnectionStore? connectionStore = null)
     {
         _credentialStore = credentialStore;
+        _connectionStore = connectionStore;
 
         if (existing is null)
         {
@@ -98,6 +106,7 @@ public sealed partial class ConnectionEditorViewModel : ViewModelBase
         TerminalType = existing.TerminalType;
         TagsText = string.Join(", ", existing.Tags);
         OnConnectMacro = existing.OnConnectMacro;
+        // ProxyChain は LoadProxyCandidatesAsync で復元
     }
 
     public async Task LoadCredentialsAsync(Guid? currentCredentialId)
@@ -111,6 +120,57 @@ public sealed partial class ConnectionEditorViewModel : ViewModelBase
         {
             SelectedCredential = Credentials.FirstOrDefault(c => c.Id == id);
         }
+    }
+
+    public async Task LoadProxyCandidatesAsync(IReadOnlyList<Guid> currentChain)
+    {
+        AvailableProxyHops.Clear();
+        ProxyChain.Clear();
+        if (_connectionStore is null) return;
+        var all = (await _connectionStore.LoadAllAsync())
+            .Where(c => c.Id != Id && c.Protocol == ProtocolKind.Ssh)
+            .ToList();
+        var byId = all.ToDictionary(c => c.Id);
+        foreach (var id in currentChain)
+        {
+            if (byId.TryGetValue(id, out var hop)) ProxyChain.Add(hop);
+        }
+        foreach (var c in all.Where(c => !currentChain.Contains(c.Id)))
+        {
+            AvailableProxyHops.Add(c);
+        }
+    }
+
+    [RelayCommand]
+    private void AddProxyHop(Connection? hop)
+    {
+        if (hop is null) return;
+        AvailableProxyHops.Remove(hop);
+        ProxyChain.Add(hop);
+    }
+
+    [RelayCommand]
+    private void RemoveProxyHop(Connection? hop)
+    {
+        if (hop is null) return;
+        ProxyChain.Remove(hop);
+        AvailableProxyHops.Add(hop);
+    }
+
+    [RelayCommand]
+    private void MoveProxyHopUp(Connection? hop)
+    {
+        if (hop is null) return;
+        var i = ProxyChain.IndexOf(hop);
+        if (i > 0) ProxyChain.Move(i, i - 1);
+    }
+
+    [RelayCommand]
+    private void MoveProxyHopDown(Connection? hop)
+    {
+        if (hop is null) return;
+        var i = ProxyChain.IndexOf(hop);
+        if (i >= 0 && i < ProxyChain.Count - 1) ProxyChain.Move(i, i + 1);
     }
 
     partial void OnProtocolChanged(ProtocolKind value)
@@ -163,6 +223,7 @@ public sealed partial class ConnectionEditorViewModel : ViewModelBase
             TerminalType = TerminalType,
             Tags = ParseTags(TagsText),
             OnConnectMacro = OnConnectMacro ?? "",
+            ProxyJumpConnectionIds = ProxyChain.Select(p => p.Id).ToList(),
         };
     }
 

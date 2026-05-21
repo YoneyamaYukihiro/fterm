@@ -110,3 +110,4 @@ tests/
 | M5 | ✅ | FTP / FTPS（FluentFTP）、Telnet（IAC 交渉ハンドリング）、シリアル（System.IO.Ports）、ディレクトリ再帰転送 |
 | M6 | ✅ | 検索（バッファ内 highlight）、Serilog ログ、マクロ DSL（send/sleep/expect）、テーマ切替、軽量 i18n、環境設定ダイアログ |
 | M7 | ✅ | カバレッジ収集、Avalonia.Headless UI スモーク、UpdateChecker（マニフェスト + SHA-256 検証）、マルチ RID self-contained 発行スクリプトとリリース CI、署名手順ドキュメント |
+| M8 | ✅ | 衝突方針 + レジューム転送、ドラッグ&ドロップ、言語切替の即時反映、SSH ProxyJump（多段接続） |

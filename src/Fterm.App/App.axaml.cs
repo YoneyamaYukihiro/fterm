@@ -4,6 +4,7 @@ using Avalonia.Markup.Xaml;
 using System.Net.Http;
 using System.Runtime.InteropServices;
 using Fterm.Core.Connections;
+using Fterm.Core.Localization;
 using Fterm.Core.Logging;
 using Fterm.Core.Security;
 using Fterm.Core.Settings;
@@ -32,6 +33,7 @@ public partial class App : Application
             var settings = settingsStore.LoadAsync().GetAwaiter().GetResult();
 
             LoggingSetup.Initialize(retentionDays: settings.LogRetentionDays);
+            Localizer.Instance.Language = settings.Language;
             Log.Information("fterm starting up. theme={Theme} language={Language}", settings.Theme, settings.Language);
 
             IConnectionStore connectionStore = new JsonConnectionStore(JsonConnectionStore.DefaultPath());
@@ -45,9 +47,10 @@ public partial class App : Application
             window.SettingsStore = settingsStore;
             window.ThemeService = themeService;
 
-            var editorService = new ConnectionEditorService(window, credentialStore);
+            var editorService = new ConnectionEditorService(window, credentialStore, connectionStore);
             var hostKeyPolicy = new InteractiveHostKeyPolicy(window);
-            var connectionService = new SshConnectionService(credentialStore, knownHosts, hostKeyPolicy);
+            var collisionResolver = new InteractiveCollisionResolver(window);
+            var connectionService = new SshConnectionService(credentialStore, knownHosts, hostKeyPolicy, settingsStore, collisionResolver, connectionStore);
             window.DataContext = new MainWindowViewModel(connectionStore, credentialStore, editorService, connectionService);
             desktop.MainWindow = window;
 

@@ -60,5 +60,14 @@ public sealed class LocalFileChannel : IFileChannel
         return Task.CompletedTask;
     }
 
+    public Task<bool> ExistsAsync(string path, CancellationToken ct) =>
+        Task.FromResult(File.Exists(path) || Directory.Exists(path));
+
+    public Task<long> GetSizeAsync(string path, CancellationToken ct) =>
+        Task.FromResult(File.Exists(path) ? new FileInfo(path).Length : -1L);
+
+    public Task<Stream> OpenAppendAsync(string path, CancellationToken ct) =>
+        Task.FromResult<Stream>(new FileStream(path, FileMode.Append, FileAccess.Write));
+
     public ValueTask DisposeAsync() => ValueTask.CompletedTask;
 }

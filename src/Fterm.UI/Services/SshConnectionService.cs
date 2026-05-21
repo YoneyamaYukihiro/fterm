@@ -3,6 +3,8 @@ using Fterm.Core.Files;
 using Fterm.Core.Macros;
 using Fterm.Core.Security;
 using Fterm.Core.Sessions;
+using Fterm.Core.Settings;
+using Fterm.Core.Transfer;
 using Fterm.Protocols.Ftp;
 using Fterm.Protocols.Serial;
 using Fterm.Protocols.Ssh;
@@ -21,17 +23,30 @@ public sealed class SshConnectionService : IConnectionService
     private readonly ICredentialStore _credentials;
     private readonly KnownHostsStore _knownHosts;
     private readonly IHostKeyPolicy _hostKeyPolicy;
+    private readonly IAppSettingsStore _settings;
+    private readonly ICollisionPolicyResolver _collisionResolver;
+    private readonly IConnectionStore _connectionStore;
 
-    public SshConnectionService(ICredentialStore credentials, KnownHostsStore knownHosts, IHostKeyPolicy hostKeyPolicy)
+    public SshConnectionService(
+        ICredentialStore credentials,
+        KnownHostsStore knownHosts,
+        IHostKeyPolicy hostKeyPolicy,
+        IAppSettingsStore settings,
+        ICollisionPolicyResolver collisionResolver,
+        IConnectionStore connectionStore)
     {
         _credentials = credentials;
         _knownHosts = knownHosts;
         _hostKeyPolicy = hostKeyPolicy;
+        _settings = settings;
+        _collisionResolver = collisionResolver;
+        _connectionStore = connectionStore;
     }
 
     public async Task<TerminalTabViewModel?> OpenTerminalAsync(Connection c, CancellationToken ct)
     {
         var cred = await ResolveCredentialAsync(c, ct);
+        var proxyHops = await BuildProxyHopsAsync(c, ct);
         ITerminalChannel channel = c.Protocol switch
         {
             ProtocolKind.Ssh => new SshTerminalChannel(new SshTerminalChannelOptions
@@ -41,6 +56,7 @@ public sealed class SshConnectionService : IConnectionService
                 PrivateKeyPem = cred?.Kind == CredentialKind.PrivateKey ? cred.Secret : null,
                 PrivateKeyPassphrase = cred?.Passphrase,
                 TerminalName = c.TerminalType,
+                ProxyHops = proxyHops,
             }, _knownHosts, _hostKeyPolicy),
             ProtocolKind.Telnet => new TelnetTerminalChannel(new TelnetTerminalChannelOptions
             {
@@ -91,6 +107,7 @@ public sealed class SshConnectionService : IConnectionService
     public async Task<FileTabViewModel?> OpenFileBrowserAsync(Connection c, CancellationToken ct)
     {
         var cred = await ResolveCredentialAsync(c, ct);
+        var proxyHops = await BuildProxyHopsAsync(c, ct);
         IFileChannel remote = c.Protocol switch
         {
             ProtocolKind.Sftp or ProtocolKind.Ssh => new SftpFileChannel(new SftpFileChannelOptions
@@ -99,6 +116,7 @@ public sealed class SshConnectionService : IConnectionService
                 Password = cred?.Kind == CredentialKind.Password ? cred.Secret : null,
                 PrivateKeyPem = cred?.Kind == CredentialKind.PrivateKey ? cred.Secret : null,
                 PrivateKeyPassphrase = cred?.Passphrase,
+                ProxyHops = proxyHops,
             }, _knownHosts, _hostKeyPolicy),
             ProtocolKind.Ftp => new FtpFileChannel(new FtpFileChannelOptions
             {
@@ -119,7 +137,12 @@ public sealed class SshConnectionService : IConnectionService
         var localInitial = c.InitialLocalDirectory ?? Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
         var remoteInitial = c.InitialRemoteDirectory ?? (c.Protocol is ProtocolKind.Ftp or ProtocolKind.Ftps ? "/" : ".");
 
-        var tab = new FileTabViewModel($"{c.Name} ({c.Protocol})", local, localInitial, remote, remoteInitial);
+        var settings = await _settings.LoadAsync(ct);
+        var tab = new FileTabViewModel($"{c.Name} ({c.Protocol})", local, localInitial, remote, remoteInitial, settings.TransferConcurrency)
+        {
+            DefaultCollisionPolicy = settings.DefaultCollisionPolicy,
+            CollisionResolver = _collisionResolver,
+        };
         await tab.InitializeAsync();
         return tab;
     }
@@ -128,5 +151,28 @@ public sealed class SshConnectionService : IConnectionService
     {
         if (c.CredentialId is not { } id) return null;
         return await _credentials.GetAsync(id, ct);
+    }
+
+    /// <summary>Connection.ProxyJumpConnectionIds を解決して HopSpec のリストにする。</summary>
+    private async Task<IReadOnlyList<SshProxyChainBuilder.HopSpec>?> BuildProxyHopsAsync(Connection c, CancellationToken ct)
+    {
+        if (c.ProxyJumpConnectionIds.Count == 0) return null;
+        var all = await _connectionStore.LoadAllAsync(ct);
+        var byId = all.ToDictionary(x => x.Id);
+        var hops = new List<SshProxyChainBuilder.HopSpec>(c.ProxyJumpConnectionIds.Count);
+        foreach (var id in c.ProxyJumpConnectionIds)
+        {
+            if (!byId.TryGetValue(id, out var hopConn))
+                throw new InvalidOperationException($"ProxyJump connection {id} not found.");
+            if (hopConn.Protocol != ProtocolKind.Ssh)
+                throw new InvalidOperationException($"ProxyJump hop {hopConn.Name} must be SSH (got {hopConn.Protocol}).");
+            var hopCred = await ResolveCredentialAsync(hopConn, ct);
+            hops.Add(new SshProxyChainBuilder.HopSpec(
+                hopConn.Host, hopConn.Port, hopConn.Username,
+                hopCred?.Kind == CredentialKind.Password ? hopCred.Secret : null,
+                hopCred?.Kind == CredentialKind.PrivateKey ? hopCred.Secret : null,
+                hopCred?.Passphrase));
+        }
+        return hops;
     }
 }

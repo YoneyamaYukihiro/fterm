@@ -3,6 +3,7 @@
         xmlns:vm="using:Fterm.UI.ViewModels"
         xmlns:ctl="using:Fterm.UI.Controls"
         xmlns:v="using:Fterm.UI.Views"
+        xmlns:loc="using:Fterm.Core.Localization"
         x:Class="Fterm.UI.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Title="fterm" Width="1100" Height="720">
@@ -55,40 +56,40 @@
 
     <DockPanel>
         <Menu DockPanel.Dock="Top">
-            <MenuItem Header="ファイル(_F)">
-                <MenuItem Header="新規接続(_N)..." InputGesture="Ctrl+N" Command="{Binding NewConnectionCommand}" />
-                <MenuItem Header="クイック接続(_Q)..." InputGesture="Ctrl+Shift+N" />
+            <MenuItem Header="{Binding [menu.file], Source={x:Static loc:Localizer.Instance}}">
+                <MenuItem Header="{Binding [menu.file.newConnection], Source={x:Static loc:Localizer.Instance}}" InputGesture="Ctrl+N" Command="{Binding NewConnectionCommand}" />
+                <MenuItem Header="{Binding [menu.file.quickConnection], Source={x:Static loc:Localizer.Instance}}" InputGesture="Ctrl+Shift+N" />
                 <Separator />
-                <MenuItem Header="接続" Command="{Binding ConnectCommand}" InputGesture="Ctrl+Enter" />
-                <MenuItem Header="エコータブを開く(_E)" Command="{Binding NewEchoTabCommand}" />
+                <MenuItem Header="{Binding [menu.file.connect], Source={x:Static loc:Localizer.Instance}}" Command="{Binding ConnectCommand}" InputGesture="Ctrl+Enter" />
+                <MenuItem Header="{Binding [menu.file.openEchoTab], Source={x:Static loc:Localizer.Instance}}" Command="{Binding NewEchoTabCommand}" />
                 <Separator />
-                <MenuItem Header="終了(_X)" />
+                <MenuItem Header="{Binding [menu.file.exit], Source={x:Static loc:Localizer.Instance}}" />
             </MenuItem>
-            <MenuItem Header="編集(_E)">
-                <MenuItem Header="コピー" InputGesture="Ctrl+C" />
-                <MenuItem Header="貼り付け" InputGesture="Ctrl+V" />
-                <MenuItem Header="検索..." InputGesture="Ctrl+F" Click="OnFindMenuClicked" />
+            <MenuItem Header="{Binding [menu.edit], Source={x:Static loc:Localizer.Instance}}">
+                <MenuItem Header="{Binding [menu.edit.copy], Source={x:Static loc:Localizer.Instance}}" InputGesture="Ctrl+C" />
+                <MenuItem Header="{Binding [menu.edit.paste], Source={x:Static loc:Localizer.Instance}}" InputGesture="Ctrl+V" />
+                <MenuItem Header="{Binding [menu.edit.find], Source={x:Static loc:Localizer.Instance}}" InputGesture="Ctrl+F" Click="OnFindMenuClicked" />
             </MenuItem>
-            <MenuItem Header="表示(_V)">
-                <MenuItem Header="サイドパネル" InputGesture="F9" />
+            <MenuItem Header="{Binding [menu.view], Source={x:Static loc:Localizer.Instance}}">
+                <MenuItem Header="{Binding [menu.view.sidePanel], Source={x:Static loc:Localizer.Instance}}" InputGesture="F9" />
             </MenuItem>
-            <MenuItem Header="接続(_C)">
-                <MenuItem Header="新規..." Command="{Binding NewConnectionCommand}" />
-                <MenuItem Header="編集..." Command="{Binding EditConnectionCommand}" />
-                <MenuItem Header="複製" Command="{Binding DuplicateConnectionCommand}" />
-                <MenuItem Header="削除" Command="{Binding DeleteConnectionCommand}" />
+            <MenuItem Header="{Binding [menu.connection], Source={x:Static loc:Localizer.Instance}}">
+                <MenuItem Header="{Binding [menu.connection.new], Source={x:Static loc:Localizer.Instance}}" Command="{Binding NewConnectionCommand}" />
+                <MenuItem Header="{Binding [menu.connection.edit], Source={x:Static loc:Localizer.Instance}}" Command="{Binding EditConnectionCommand}" />
+                <MenuItem Header="{Binding [menu.connection.duplicate], Source={x:Static loc:Localizer.Instance}}" Command="{Binding DuplicateConnectionCommand}" />
+                <MenuItem Header="{Binding [menu.connection.delete], Source={x:Static loc:Localizer.Instance}}" Command="{Binding DeleteConnectionCommand}" />
                 <Separator />
-                <MenuItem Header="接続" Command="{Binding ConnectCommand}" />
+                <MenuItem Header="{Binding [menu.file.connect], Source={x:Static loc:Localizer.Instance}}" Command="{Binding ConnectCommand}" />
             </MenuItem>
-            <MenuItem Header="転送(_T)">
-                <MenuItem Header="SFTP を開く" Command="{Binding OpenSftpCommand}" />
-                <MenuItem Header="転送キューを開く" InputGesture="Ctrl+J" />
+            <MenuItem Header="{Binding [menu.transfer], Source={x:Static loc:Localizer.Instance}}">
+                <MenuItem Header="{Binding [menu.transfer.openSftp], Source={x:Static loc:Localizer.Instance}}" Command="{Binding OpenSftpCommand}" />
+                <MenuItem Header="{Binding [menu.transfer.openQueue], Source={x:Static loc:Localizer.Instance}}" InputGesture="Ctrl+J" />
             </MenuItem>
-            <MenuItem Header="設定(_S)">
-                <MenuItem Header="環境設定..." InputGesture="Ctrl+," Click="OnPreferencesClicked" />
+            <MenuItem Header="{Binding [menu.settings], Source={x:Static loc:Localizer.Instance}}">
+                <MenuItem Header="{Binding [menu.settings.preferences], Source={x:Static loc:Localizer.Instance}}" InputGesture="Ctrl+," Click="OnPreferencesClicked" />
             </MenuItem>
-            <MenuItem Header="ヘルプ(_H)">
-                <MenuItem Header="バージョン情報" />
+            <MenuItem Header="{Binding [menu.help], Source={x:Static loc:Localizer.Instance}}">
+                <MenuItem Header="{Binding [menu.help.about], Source={x:Static loc:Localizer.Instance}}" />
             </MenuItem>
         </Menu>
 

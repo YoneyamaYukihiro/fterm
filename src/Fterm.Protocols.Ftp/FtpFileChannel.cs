@@ -117,6 +117,32 @@ public sealed class FtpFileChannel : IFileChannel
         await _client!.Rename(from, to, ct);
     }
 
+    public async Task<bool> ExistsAsync(string path, CancellationToken ct)
+    {
+        EnsureConnected();
+        return await _client!.FileExists(path, ct) || await _client.DirectoryExists(path, ct);
+    }
+
+    public async Task<long> GetSizeAsync(string path, CancellationToken ct)
+    {
+        EnsureConnected();
+        try
+        {
+            if (await _client!.DirectoryExists(path, ct)) return -1;
+            return await _client.GetFileSize(path, -1, ct);
+        }
+        catch
+        {
+            return -1;
+        }
+    }
+
+    public async Task<Stream> OpenAppendAsync(string path, CancellationToken ct)
+    {
+        EnsureConnected();
+        return await _client!.OpenAppend(path, FtpDataType.Binary, true, ct);
+    }
+
     public async ValueTask DisposeAsync()
     {
         if (_client is not null)

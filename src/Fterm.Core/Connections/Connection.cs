@@ -36,6 +36,9 @@ public sealed record Connection
     /// <summary>接続直後に走らせるマクロスクリプト（DSL は Fterm.Core.Macros.Macro 参照）。</summary>
     public string OnConnectMacro { get; init; } = "";
 
+    /// <summary>ProxyJump として経由する接続 ID チェーン。先頭が最初に経由する踏み台。</summary>
+    public IReadOnlyList<Guid> ProxyJumpConnectionIds { get; init; } = [];
+
     public static Connection NewSsh(string name, string host, string username) => new()
     {
         Id = Guid.NewGuid(),

@@ -13,7 +13,7 @@
             </StackPanel>
         </Border>
 
-        <Grid ColumnDefinitions="180,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto">
+        <Grid ColumnDefinitions="180,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto">
             <TextBlock Grid.Row="0" Grid.Column="0" Text="テーマ" VerticalAlignment="Center" Margin="0,6" />
             <ComboBox Grid.Row="0" Grid.Column="1" ItemsSource="{Binding Themes}" SelectedItem="{Binding Theme}" HorizontalAlignment="Stretch" Margin="0,3" />
 
@@ -28,6 +28,9 @@
 
             <TextBlock Grid.Row="4" Grid.Column="0" Text="ログ保持日数" VerticalAlignment="Center" Margin="0,6" />
             <NumericUpDown Grid.Row="4" Grid.Column="1" Value="{Binding LogRetentionDays}" Minimum="1" Maximum="365" Increment="1" Margin="0,3" />
+
+            <TextBlock Grid.Row="5" Grid.Column="0" Text="衝突時の既定動作" VerticalAlignment="Center" Margin="0,6" />
+            <ComboBox Grid.Row="5" Grid.Column="1" ItemsSource="{Binding CollisionPolicies}" SelectedItem="{Binding DefaultCollisionPolicy}" HorizontalAlignment="Stretch" Margin="0,3" />
         </Grid>
     </DockPanel>
 </Window>

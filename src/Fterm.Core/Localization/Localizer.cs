@@ -1,13 +1,47 @@
+using System.ComponentModel;
 using Fterm.Core.Settings;
 
 namespace Fterm.Core.Localization;
 
 /// <summary>
 /// 言語コードでキー→文字列を解決する軽量ローカライザ。
-/// resx よりシンプルで、ビューモデル単体テストもしやすい。
+/// インデクサ <see cref="this[string]"/> をバインドすることで XAML から
+/// 設定言語に追従できる（言語切替時に Item[] PropertyChanged が発火）。
 /// </summary>
-public sealed class Localizer
+public sealed class Localizer : INotifyPropertyChanged
 {
+    /// <summary>アプリ全体で共有する単一インスタンス（XAML から x:Static で参照）。</summary>
+    public static Localizer Instance { get; } = new();
+
+    private AppLanguage _language = AppLanguage.Ja;
+
+    public AppLanguage Language
+    {
+        get => _language;
+        set
+        {
+            if (_language == value) return;
+            _language = value;
+            // インデクサ全体の更新を通知 (WPF/Avalonia ともに "Item[]" 名で発火)
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("Item[]"));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Language)));
+        }
+    }
+
+    public event PropertyChangedEventHandler? PropertyChanged;
+
+    public string this[string key] => T(key);
+
+    public string T(string key)
+    {
+        var lang = _language == AppLanguage.En ? "en" : "ja";
+        if (Tables.TryGetValue(lang, out var table) && table.TryGetValue(key, out var v)) return v;
+        if (Tables["ja"].TryGetValue(key, out var fallback)) return fallback;
+        return key;
+    }
+
+    public string TF(string key, params object[] args) => string.Format(T(key), args);
+
     private static readonly Dictionary<string, Dictionary<string, string>> Tables = new()
     {
         ["ja"] = new()
@@ -50,6 +84,7 @@ public sealed class Localizer
             ["settings.scrollback"] = "スクロールバック行数",
             ["settings.transferConcurrency"] = "転送同時実行数",
             ["settings.logRetention"] = "ログ保持日数",
+            ["settings.collisionPolicy"] = "衝突時の既定動作",
             ["dialog.ok"] = "OK",
             ["dialog.cancel"] = "キャンセル",
             ["dialog.save"] = "保存",
@@ -96,6 +131,7 @@ public sealed class Localizer
             ["settings.scrollback"] = "Scrollback lines",
             ["settings.transferConcurrency"] = "Transfer concurrency",
             ["settings.logRetention"] = "Log retention (days)",
+            ["settings.collisionPolicy"] = "Default collision policy",
             ["dialog.ok"] = "OK",
             ["dialog.cancel"] = "Cancel",
             ["dialog.save"] = "Save",
@@ -103,16 +139,4 @@ public sealed class Localizer
             ["search.matches"] = "{0}/{1} matches",
         },
     };
-
-    public AppLanguage Language { get; set; } = AppLanguage.Ja;
-
-    public string T(string key)
-    {
-        var lang = Language == AppLanguage.En ? "en" : "ja";
-        if (Tables.TryGetValue(lang, out var table) && table.TryGetValue(key, out var v)) return v;
-        if (Tables["ja"].TryGetValue(key, out var fallback)) return fallback;
-        return key;
-    }
-
-    public string TF(string key, params object[] args) => string.Format(T(key), args);
 }

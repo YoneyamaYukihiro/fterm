@@ -1,0 +1,27 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="Fterm.UI.Views.CollisionDialog"
+        Title="ファイルが既に存在します"
+        Width="520" SizeToContent="Height"
+        WindowStartupLocation="CenterOwner">
+    <StackPanel Margin="16" Spacing="10">
+        <TextBlock Text="同名のファイルが宛先に既に存在します。" FontSize="14" FontWeight="SemiBold" />
+        <Grid ColumnDefinitions="120,*" RowDefinitions="Auto,Auto,Auto,Auto">
+            <TextBlock Grid.Row="0" Grid.Column="0" Text="ソース" Foreground="#bbb" />
+            <TextBlock x:Name="SrcPathText" Grid.Row="0" Grid.Column="1" FontFamily="Cascadia Mono,Consolas,Menlo,Monospace" TextWrapping="Wrap" />
+            <TextBlock Grid.Row="1" Grid.Column="0" Text="サイズ" Foreground="#bbb" />
+            <TextBlock x:Name="SrcSizeText" Grid.Row="1" Grid.Column="1" />
+            <TextBlock Grid.Row="2" Grid.Column="0" Text="宛先" Foreground="#bbb" Margin="0,6,0,0" />
+            <TextBlock x:Name="DstPathText" Grid.Row="2" Grid.Column="1" FontFamily="Cascadia Mono,Consolas,Menlo,Monospace" TextWrapping="Wrap" Margin="0,6,0,0" />
+            <TextBlock Grid.Row="3" Grid.Column="0" Text="既存サイズ" Foreground="#bbb" />
+            <TextBlock x:Name="DstSizeText" Grid.Row="3" Grid.Column="1" />
+        </Grid>
+        <CheckBox x:Name="ApplyAllCheck" Content="今後の衝突にも同じ動作を適用 (このセッション中)" />
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="6">
+            <Button Content="スキップ" Click="OnSkip" MinWidth="80" />
+            <Button Content="リネーム" Click="OnRename" MinWidth="80" />
+            <Button Content="レジューム" Click="OnResume" MinWidth="100" />
+            <Button Content="上書き" Click="OnOverwrite" MinWidth="80" />
+        </StackPanel>
+    </StackPanel>
+</Window>

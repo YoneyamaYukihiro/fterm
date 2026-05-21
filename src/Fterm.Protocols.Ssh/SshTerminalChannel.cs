@@ -16,6 +16,8 @@ public sealed class SshTerminalChannelOptions
     public string TerminalName { get; init; } = "xterm-256color";
     public int InitialCols { get; init; } = 100;
     public int InitialRows { get; init; } = 30;
+    /// <summary>ProxyJump 用の踏み台チェーン (任意)。</summary>
+    public IReadOnlyList<SshProxyChainBuilder.HopSpec>? ProxyHops { get; init; }
 }
 
 /// <summary>
@@ -29,6 +31,7 @@ public sealed class SshTerminalChannel : ITerminalChannel
 
     private SshClient? _client;
     private ShellStream? _stream;
+    private SshProxyChain? _proxyChain;
     private readonly Channel<ReadOnlyMemory<byte>> _rx = Channel.CreateUnbounded<ReadOnlyMemory<byte>>();
     private CancellationTokenSource? _readCts;
 
@@ -43,12 +46,24 @@ public sealed class SshTerminalChannel : ITerminalChannel
 
     public async Task ConnectAsync(CancellationToken ct)
     {
+        // ProxyJump 経由なら踏み台チェーンを先に張る
+        string connectHost = _options.Host;
+        int connectPort = _options.Port;
+        if (_options.ProxyHops is { Count: > 0 } hops)
+        {
+            var builder = new SshProxyChainBuilder(_knownHosts, _hostKeyPolicy);
+            _proxyChain = await Task.Run(() => builder.Build(hops, _options.Host, _options.Port, ct), ct);
+            connectHost = _proxyChain.LocalEndpoint.Host;
+            connectPort = _proxyChain.LocalEndpoint.Port;
+        }
+
         var authMethods = BuildAuthMethods().ToArray();
-        var info = new ConnectionInfo(_options.Host, _options.Port, _options.Username, authMethods);
+        var info = new ConnectionInfo(connectHost, connectPort, _options.Username, authMethods);
 
         _client = new SshClient(info);
 
         Exception? hostKeyFailure = null;
+        // 鍵検証は論理的なホスト名 (_options.Host) で行うので踏み台越しでも改ざん検出可
         SshHostKeyValidator.Attach(_client, _options.Host, _options.Port, _knownHosts, _hostKeyPolicy, ct,
             ex => hostKeyFailure = ex);
 
@@ -134,6 +149,7 @@ public sealed class SshTerminalChannel : ITerminalChannel
         catch { /* ignore */ }
         _stream?.Dispose();
         _client?.Dispose();
+        _proxyChain?.Dispose();
         _rx.Writer.TryComplete();
         Disconnected?.Invoke(this, new DisconnectedEventArgs("disposed"));
         await Task.CompletedTask;
