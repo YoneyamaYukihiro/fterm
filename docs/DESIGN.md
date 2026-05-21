@@ -35,8 +35,8 @@ TeraTerm（ターミナル / SSH / Telnet / シリアル）と FFFTP（FTP / SFT
 ### 2.1 採用スタック
 | 項目 | 採用 | 備考 |
 |---|---|---|
-| 言語 | C# 12 / .NET 8 LTS | 長期サポート版 |
-| UI フレームワーク | **Avalonia 11**（推奨） | クロスプラットフォーム（Win/macOS/Linux）。WPF 互換の XAML。 |
+| 言語 | C# 14 / **.NET 10 (LTS)** | 2025-11 リリースの長期サポート版。`field` キーワード、拡張メンバー（静的を含む）、null 条件付き代入、より高速な GC 等の最新機能を活用。 |
+| UI フレームワーク | **Avalonia 11.x**（推奨） | クロスプラットフォーム（Win/macOS/Linux）。WPF 互換の XAML。.NET 10 ターゲット対応版を使用。 |
 | MVVM | CommunityToolkit.Mvvm | ソースジェネレータで `ObservableObject` 等を簡潔に。 |
 | DI | Microsoft.Extensions.DependencyInjection | 標準的。 |
 | ロギング | Serilog | 構造化ログ。ファイル + コンソール sink。 |
@@ -54,13 +54,26 @@ TeraTerm（ターミナル / SSH / Telnet / シリアル）と FFFTP（FTP / SFT
 - **結論：Avalonia を採用**。XAML スタイルを WPF 風に書き、将来 WPF 移植が必要でも乗り換えコストを抑える。
 
 ### 2.3 主要 NuGet 依存
-- `Avalonia`, `Avalonia.Desktop`, `Avalonia.Themes.Fluent`
+- `Avalonia`, `Avalonia.Desktop`, `Avalonia.Themes.Fluent`（11.x 系の .NET 10 対応版）
 - `CommunityToolkit.Mvvm`
 - `Microsoft.Extensions.Hosting`
 - `Serilog`, `Serilog.Sinks.File`
 - `SSH.NET`
 - `FluentFTP`
 - `System.IO.Ports`
+
+すべて `<TargetFramework>net10.0</TargetFramework>` でビルドする。
+ライブラリ側がまだ `net10.0` 用バイナリを出していなくても、`net8.0`/`netstandard2.1`
+ターゲットを `net10.0` から参照できるため互換性は保たれる。
+
+### 2.4 ビルド・配布
+- SDK: .NET 10 SDK（CI で `actions/setup-dotnet@v4` の `dotnet-version: 10.0.x` を指定）。
+- 配布:
+  - Windows: `dotnet publish -c Release -r win-x64 --self-contained -p:PublishSingleFile=true` で単一 EXE 化。
+  - macOS: `osx-arm64` / `osx-x64` の self-contained。コード署名 + 公証。
+  - Linux: AppImage / tarball。
+- **NativeAOT** はターミナル描画など反射依存のある部分があるため v1 では採用しない。
+  起動高速化が必要になれば、Trimming + ReadyToRun から段階的に検討する。
 
 ---
 
@@ -382,9 +395,9 @@ public interface IFileChannel : IAsyncDisposable
 
 ## 13. 次のアクション（M1 着手の準備）
 
-1. ソリューションとプロジェクト雛形の生成。
+1. ソリューションとプロジェクト雛形の生成（`<TargetFramework>net10.0</TargetFramework>`、`global.json` で SDK 10.0.x を固定）。
 2. Avalonia アプリの起動確認（空ウィンドウ＋メニュー）。
 3. `Connection` モデル、`ConnectionStore`（JSON 永続化）の実装。
 4. ダミーの `TerminalChannel` で UI 上にエコー表示できることを確認。
-5. CI（GitHub Actions）でビルド／テスト実行を確立。
+5. CI（GitHub Actions）で .NET 10 SDK セットアップ → ビルド／テスト実行を確立。
 
