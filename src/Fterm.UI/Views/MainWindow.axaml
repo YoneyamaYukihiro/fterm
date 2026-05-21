@@ -1,0 +1,109 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:Fterm.UI.ViewModels"
+        x:Class="Fterm.UI.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Title="fterm" Width="1100" Height="720">
+
+    <Window.Styles>
+        <Style Selector="TextBox.terminal">
+            <Setter Property="FontFamily" Value="Cascadia Mono,Consolas,Menlo,Monospace" />
+            <Setter Property="Background" Value="#1e1e1e" />
+            <Setter Property="Foreground" Value="#dcdcdc" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="AcceptsReturn" Value="True" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+        </Style>
+    </Window.Styles>
+
+    <DockPanel>
+        <Menu DockPanel.Dock="Top">
+            <MenuItem Header="ファイル(_F)">
+                <MenuItem Header="新規接続(_N)..." InputGesture="Ctrl+N" />
+                <MenuItem Header="クイック接続(_Q)..." InputGesture="Ctrl+Shift+N" />
+                <Separator />
+                <MenuItem Header="エコータブを開く(_E)" Command="{Binding NewEchoTabCommand}" />
+                <Separator />
+                <MenuItem Header="終了(_X)" />
+            </MenuItem>
+            <MenuItem Header="編集(_E)">
+                <MenuItem Header="コピー" InputGesture="Ctrl+C" />
+                <MenuItem Header="貼り付け" InputGesture="Ctrl+V" />
+                <MenuItem Header="検索..." InputGesture="Ctrl+F" />
+            </MenuItem>
+            <MenuItem Header="表示(_V)">
+                <MenuItem Header="サイドパネル" InputGesture="F9" />
+            </MenuItem>
+            <MenuItem Header="接続(_C)">
+                <MenuItem Header="接続マネージャ..." />
+                <MenuItem Header="切断" />
+            </MenuItem>
+            <MenuItem Header="転送(_T)">
+                <MenuItem Header="転送キューを開く" InputGesture="Ctrl+J" />
+            </MenuItem>
+            <MenuItem Header="設定(_S)">
+                <MenuItem Header="環境設定..." InputGesture="Ctrl+," />
+            </MenuItem>
+            <MenuItem Header="ヘルプ(_H)">
+                <MenuItem Header="バージョン情報" />
+            </MenuItem>
+        </Menu>
+
+        <Border DockPanel.Dock="Top" BorderBrush="#333" BorderThickness="0,0,0,1" Padding="6,4">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+                <Button Content="新規接続" />
+                <Button Content="切断" />
+                <Button Content="複製" />
+                <Separator Width="1" Background="#555" Margin="4,0" />
+                <Button Content="SFTP" />
+                <Button Content="マクロ" />
+                <Button Content="設定" />
+                <Separator Width="1" Background="#555" Margin="4,0" />
+                <Button Content="エコータブ" Command="{Binding NewEchoTabCommand}" />
+            </StackPanel>
+        </Border>
+
+        <Border DockPanel.Dock="Bottom" BorderBrush="#333" BorderThickness="0,1,0,0" Padding="8,3">
+            <TextBlock Text="{Binding StatusText}" />
+        </Border>
+
+        <Grid ColumnDefinitions="220,4,*">
+            <Border Grid.Column="0" Background="#252526" BorderBrush="#333" BorderThickness="0,0,1,0">
+                <DockPanel>
+                    <TextBlock DockPanel.Dock="Top" Text="接続帳" Foreground="#bbb" Margin="8" />
+                    <ListBox ItemsSource="{Binding Connections}">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel>
+                                    <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
+                                    <TextBlock Text="{Binding Host}" Foreground="#888" FontSize="11" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </DockPanel>
+            </Border>
+
+            <GridSplitter Grid.Column="1" Background="#333" />
+
+            <TabControl Grid.Column="2" ItemsSource="{Binding Tabs}" SelectedItem="{Binding SelectedTab}">
+                <TabControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:TabItemViewModel">
+                        <TextBlock Text="{Binding Title}" />
+                    </DataTemplate>
+                </TabControl.ItemTemplate>
+                <TabControl.ContentTemplate>
+                    <DataTemplate x:DataType="vm:TabItemViewModel">
+                        <DockPanel>
+                            <Grid DockPanel.Dock="Bottom" ColumnDefinitions="*,Auto" Margin="4">
+                                <TextBox Grid.Column="0" Text="{Binding Input}" Watermark="入力して Enter" />
+                                <Button Grid.Column="1" Content="送信" Margin="4,0,0,0" Command="{Binding SendCommand}" />
+                            </Grid>
+                            <TextBox Classes="terminal" IsReadOnly="True" Text="{Binding Output}" />
+                        </DockPanel>
+                    </DataTemplate>
+                </TabControl.ContentTemplate>
+            </TabControl>
+        </Grid>
+    </DockPanel>
+</Window>

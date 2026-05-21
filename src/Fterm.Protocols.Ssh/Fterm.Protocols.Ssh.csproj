@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>Fterm.Protocols.Ssh</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Fterm.Core\Fterm.Core.csproj" />
+  </ItemGroup>
+</Project>
