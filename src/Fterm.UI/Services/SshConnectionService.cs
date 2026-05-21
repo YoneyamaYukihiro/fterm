@@ -2,11 +2,18 @@ using Fterm.Core.Connections;
 using Fterm.Core.Files;
 using Fterm.Core.Security;
 using Fterm.Core.Sessions;
+using Fterm.Protocols.Ftp;
+using Fterm.Protocols.Serial;
 using Fterm.Protocols.Ssh;
+using Fterm.Protocols.Telnet;
 using Fterm.UI.ViewModels;
 
 namespace Fterm.UI.Services;
 
+/// <summary>
+/// 接続定義からプロトコル別にチャネルを構築し、UI タブを返す。
+/// 名前は歴史的経緯で Ssh となっているが SSH/SFTP/FTP/FTPS/Telnet/Serial を扱う。
+/// </summary>
 public sealed class SshConnectionService : IConnectionService
 {
     private readonly ICredentialStore _credentials;
@@ -22,48 +29,64 @@ public sealed class SshConnectionService : IConnectionService
 
     public async Task<TerminalTabViewModel?> OpenTerminalAsync(Connection c, CancellationToken ct)
     {
-        if (c.Protocol is not (ProtocolKind.Ssh or ProtocolKind.Telnet))
-        {
-            throw new NotSupportedException($"Terminal cannot be opened for {c.Protocol}.");
-        }
-
         var cred = await ResolveCredentialAsync(c, ct);
-        var options = new SshTerminalChannelOptions
+        ITerminalChannel channel = c.Protocol switch
         {
-            Host = c.Host, Port = c.Port, Username = c.Username,
-            Password = cred?.Kind == CredentialKind.Password ? cred.Secret : null,
-            PrivateKeyPem = cred?.Kind == CredentialKind.PrivateKey ? cred.Secret : null,
-            PrivateKeyPassphrase = cred?.Passphrase,
-            TerminalName = c.TerminalType,
+            ProtocolKind.Ssh => new SshTerminalChannel(new SshTerminalChannelOptions
+            {
+                Host = c.Host, Port = c.Port, Username = c.Username,
+                Password = cred?.Kind == CredentialKind.Password ? cred.Secret : null,
+                PrivateKeyPem = cred?.Kind == CredentialKind.PrivateKey ? cred.Secret : null,
+                PrivateKeyPassphrase = cred?.Passphrase,
+                TerminalName = c.TerminalType,
+            }, _knownHosts, _hostKeyPolicy),
+            ProtocolKind.Telnet => new TelnetTerminalChannel(new TelnetTerminalChannelOptions
+            {
+                Host = c.Host, Port = c.Port,
+            }),
+            ProtocolKind.Serial => new SerialTerminalChannel(new SerialTerminalChannelOptions
+            {
+                PortName = c.Host, BaudRate = c.Port > 0 ? c.Port : 115200,
+            }),
+            _ => throw new NotSupportedException($"Terminal cannot be opened for {c.Protocol}."),
         };
-        var channel = new SshTerminalChannel(options, _knownHosts, _hostKeyPolicy);
-        var tab = new TerminalTabViewModel(c.Name, channel, options.InitialCols, options.InitialRows);
+        var tab = new TerminalTabViewModel(c.Name, channel);
         await tab.StartAsync();
         return tab;
     }
 
     public async Task<FileTabViewModel?> OpenFileBrowserAsync(Connection c, CancellationToken ct)
     {
-        if (c.Protocol is not (ProtocolKind.Sftp or ProtocolKind.Ssh))
-        {
-            throw new NotSupportedException($"File browser is not yet supported for {c.Protocol}.");
-        }
-
         var cred = await ResolveCredentialAsync(c, ct);
-        IFileChannel remote = new SftpFileChannel(new SftpFileChannelOptions
+        IFileChannel remote = c.Protocol switch
         {
-            Host = c.Host, Port = c.Port, Username = c.Username,
-            Password = cred?.Kind == CredentialKind.Password ? cred.Secret : null,
-            PrivateKeyPem = cred?.Kind == CredentialKind.PrivateKey ? cred.Secret : null,
-            PrivateKeyPassphrase = cred?.Passphrase,
-        }, _knownHosts, _hostKeyPolicy);
+            ProtocolKind.Sftp or ProtocolKind.Ssh => new SftpFileChannel(new SftpFileChannelOptions
+            {
+                Host = c.Host, Port = c.Port, Username = c.Username,
+                Password = cred?.Kind == CredentialKind.Password ? cred.Secret : null,
+                PrivateKeyPem = cred?.Kind == CredentialKind.PrivateKey ? cred.Secret : null,
+                PrivateKeyPassphrase = cred?.Passphrase,
+            }, _knownHosts, _hostKeyPolicy),
+            ProtocolKind.Ftp => new FtpFileChannel(new FtpFileChannelOptions
+            {
+                Host = c.Host, Port = c.Port, Username = c.Username,
+                Password = cred?.Secret,
+                Security = FtpSecurityMode.Plain,
+            }),
+            ProtocolKind.Ftps => new FtpFileChannel(new FtpFileChannelOptions
+            {
+                Host = c.Host, Port = c.Port, Username = c.Username,
+                Password = cred?.Secret,
+                Security = c.Port == 990 ? FtpSecurityMode.ImplicitTls : FtpSecurityMode.ExplicitTls,
+            }),
+            _ => throw new NotSupportedException($"File browser is not supported for {c.Protocol}."),
+        };
 
         IFileChannel local = new LocalFileChannel();
-
         var localInitial = c.InitialLocalDirectory ?? Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-        var remoteInitial = c.InitialRemoteDirectory ?? ".";
+        var remoteInitial = c.InitialRemoteDirectory ?? (c.Protocol is ProtocolKind.Ftp or ProtocolKind.Ftps ? "/" : ".");
 
-        var tab = new FileTabViewModel($"{c.Name} (SFTP)", local, localInitial, remote, remoteInitial);
+        var tab = new FileTabViewModel($"{c.Name} ({c.Protocol})", local, localInitial, remote, remoteInitial);
         await tab.InitializeAsync();
         return tab;
     }

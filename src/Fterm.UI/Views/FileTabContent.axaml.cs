@@ -28,7 +28,7 @@ public partial class FileTabContent : UserControl
         switch (e.Key)
         {
             case Key.F5:
-                vm.TransferSelected();
+                await vm.TransferSelectedAsync();
                 e.Handled = true;
                 break;
             case Key.F8:

@@ -39,11 +39,14 @@ dotnet run --project src/Fterm.App
 
 ## 結合テスト
 
-ローカルに sshd を立てて `FTERM_SSH_*` 環境変数を渡すと、SSH スモークテストが実行されます:
+ローカルに sshd / FTP サーバを立てて環境変数を渡すと結合テストが実行されます。
+（環境変数未設定のテストは黙ってスキップされます）
 
 ```bash
 FTERM_SSH_HOST=127.0.0.1 FTERM_SSH_PORT=2222 \
 FTERM_SSH_USER=youruser FTERM_SSH_PASS=yourpass \
+FTERM_FTP_HOST=127.0.0.1 FTERM_FTP_PORT=2121 \
+FTERM_FTP_USER=youruser FTERM_FTP_PASS=yourpass \
   dotnet test tests/Fterm.Integration.Tests
 ```
 
@@ -61,9 +64,10 @@ src/
   Fterm.UI/               View / ViewModel
   Fterm.Core/             ドメイン + アプリケーションサービス
   Fterm.Terminal/         VT パーサ / ターミナルバッファ (M3 で実装)
-  Fterm.Protocols.Ssh/    SSH / SFTP アダプタ        (M3/M4)
-  Fterm.Protocols.Ftp/    FTP / FTPS アダプタ        (M5)
-  Fterm.Protocols.Serial/ シリアルアダプタ           (M5)
+  Fterm.Protocols.Ssh/    SSH / SFTP アダプタ
+  Fterm.Protocols.Ftp/    FTP / FTPS アダプタ (FluentFTP)
+  Fterm.Protocols.Telnet/ Telnet アダプタ (IAC 交渉)
+  Fterm.Protocols.Serial/ シリアルアダプタ (System.IO.Ports)
   Fterm.Security/         資格情報・鍵管理            (M2)
 tests/
   Fterm.Core.Tests/
@@ -80,6 +84,6 @@ tests/
 | M2 | ✅ | 接続マネージャ UI（新規 / 編集 / 複製 / 削除）、AES-GCM 暗号化された資格情報ストア |
 | M3 | ✅ | SSH 接続（SSH.NET + 既知ホスト鍵キャッシュ + 確認ダイアログ）、VT パーサ最小実装、Avalonia ターミナルコントロール |
 | M4 | ✅ | SFTP 二画面ファイルブラウザ、転送キュー（並列実行 / キャンセル / 進捗表示）、ローカル ↔ リモート転送 |
-| M5 | ⬜ | FTP / FTPS / Telnet / シリアル |
+| M5 | ✅ | FTP / FTPS（FluentFTP）、Telnet（IAC 交渉ハンドリング）、シリアル（System.IO.Ports）、ディレクトリ再帰転送 |
 | M6 | ⬜ | 検索、ログ、マクロ、テーマ、i18n |
 | M7 | ⬜ | テスト整備、署名済みインストーラ、自動更新 |

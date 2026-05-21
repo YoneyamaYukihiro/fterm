@@ -5,6 +5,7 @@
     <Project Path="src/Fterm.Protocols.Ftp/Fterm.Protocols.Ftp.csproj" />
     <Project Path="src/Fterm.Protocols.Serial/Fterm.Protocols.Serial.csproj" />
     <Project Path="src/Fterm.Protocols.Ssh/Fterm.Protocols.Ssh.csproj" />
+    <Project Path="src/Fterm.Protocols.Telnet/Fterm.Protocols.Telnet.csproj" />
     <Project Path="src/Fterm.Security/Fterm.Security.csproj" />
     <Project Path="src/Fterm.Terminal/Fterm.Terminal.csproj" />
     <Project Path="src/Fterm.UI/Fterm.UI.csproj" />
@@ -12,6 +13,7 @@
   <Folder Name="/tests/">
     <Project Path="tests/Fterm.Core.Tests/Fterm.Core.Tests.csproj" />
     <Project Path="tests/Fterm.Integration.Tests/Fterm.Integration.Tests.csproj" />
+    <Project Path="tests/Fterm.Protocols.Telnet.Tests/Fterm.Protocols.Telnet.Tests.csproj" />
     <Project Path="tests/Fterm.Security.Tests/Fterm.Security.Tests.csproj" />
     <Project Path="tests/Fterm.Terminal.Tests/Fterm.Terminal.Tests.csproj" />
   </Folder>

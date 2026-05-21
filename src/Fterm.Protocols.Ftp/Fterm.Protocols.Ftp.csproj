@@ -3,6 +3,9 @@
     <RootNamespace>Fterm.Protocols.Ftp</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="FluentFTP" Version="52.1.0" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\Fterm.Core\Fterm.Core.csproj" />
   </ItemGroup>
 </Project>

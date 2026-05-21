@@ -14,5 +14,8 @@
     <ProjectReference Include="..\Fterm.Core\Fterm.Core.csproj" />
     <ProjectReference Include="..\Fterm.Terminal\Fterm.Terminal.csproj" />
     <ProjectReference Include="..\Fterm.Protocols.Ssh\Fterm.Protocols.Ssh.csproj" />
+    <ProjectReference Include="..\Fterm.Protocols.Ftp\Fterm.Protocols.Ftp.csproj" />
+    <ProjectReference Include="..\Fterm.Protocols.Telnet\Fterm.Protocols.Telnet.csproj" />
+    <ProjectReference Include="..\Fterm.Protocols.Serial\Fterm.Protocols.Serial.csproj" />
   </ItemGroup>
 </Project>

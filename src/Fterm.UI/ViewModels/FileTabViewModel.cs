@@ -41,21 +41,33 @@ public sealed partial class FileTabViewModel : ViewModelBase, IAsyncDisposable
         pane == Local ? Remote : Local;
 
     [RelayCommand]
-    public void TransferSelected()
+    public async Task TransferSelectedAsync()
     {
         var src = ActivePane;
         var dst = OtherPane(src);
         if (src.SelectedEntry is null || src.SelectedEntry.IsParentLink) return;
-        if (src.SelectedEntry.IsDirectory)
-        {
-            src.StatusText = "ディレクトリ転送は未対応 (M5 で対応予定)";
-            return;
-        }
 
         var entry = src.SelectedEntry.Entry;
-        var dstPath = dst.CombinePath(dst.CurrentPath, entry.Name);
-
         var direction = src.IsRemote ? TransferDirection.Download : TransferDirection.Upload;
+        try
+        {
+            if (entry.IsDirectory)
+            {
+                await EnqueueDirectoryAsync(src, dst, entry, direction);
+            }
+            else
+            {
+                EnqueueFile(src, dst, entry, dst.CombinePath(dst.CurrentPath, entry.Name), direction);
+            }
+        }
+        catch (Exception ex)
+        {
+            src.StatusText = $"転送準備失敗: {ex.Message}";
+        }
+    }
+
+    private void EnqueueFile(FileBrowserViewModel src, FileBrowserViewModel dst, RemoteEntry entry, string dstPath, TransferDirection direction)
+    {
         var task = new TransferTask
         {
             DisplayName = entry.Name,
@@ -75,9 +87,45 @@ public sealed partial class FileTabViewModel : ViewModelBase, IAsyncDisposable
         {
             if (e.PropertyName == nameof(TransferTask.State) && task.State == TransferState.Completed)
             {
-                await dst.ReloadAsync();
+                if (PathStartsWith(dstPath, dst.CurrentPath, dst.IsRemote)) await dst.ReloadAsync();
             }
         };
+    }
+
+    private async Task EnqueueDirectoryAsync(FileBrowserViewModel src, FileBrowserViewModel dst, RemoteEntry rootEntry, TransferDirection direction)
+    {
+        var dstRoot = dst.CombinePath(dst.CurrentPath, rootEntry.Name);
+        await dst.Channel.MakeDirectoryAsync(dstRoot, CancellationToken.None);
+        await WalkAsync(src, dst, rootEntry.FullPath, dstRoot, direction);
+        await dst.ReloadAsync();
+    }
+
+    private async Task WalkAsync(FileBrowserViewModel src, FileBrowserViewModel dst, string srcDir, string dstDir, TransferDirection direction)
+    {
+        await foreach (var child in src.Channel.ListAsync(srcDir, CancellationToken.None))
+        {
+            var childDst = dst.CombinePath(dstDir, child.Name);
+            if (child.IsDirectory)
+            {
+                await dst.Channel.MakeDirectoryAsync(childDst, CancellationToken.None);
+                await WalkAsync(src, dst, child.FullPath, childDst, direction);
+            }
+            else
+            {
+                EnqueueFile(src, dst, child, childDst, direction);
+            }
+        }
+    }
+
+    private static bool PathStartsWith(string fullPath, string currentDir, bool isRemote)
+    {
+        if (isRemote)
+        {
+            var normalized = currentDir.TrimEnd('/') + "/";
+            return fullPath.StartsWith(normalized, StringComparison.Ordinal) ||
+                   (fullPath.Length > 0 && fullPath[..(fullPath.LastIndexOf('/') + 1)] == normalized);
+        }
+        return Path.GetDirectoryName(fullPath)?.Equals(currentDir, StringComparison.OrdinalIgnoreCase) ?? false;
     }
 
     private static async Task CopyWithProgressAsync(Stream src, Stream dst, IProgress<long> progress, CancellationToken ct)

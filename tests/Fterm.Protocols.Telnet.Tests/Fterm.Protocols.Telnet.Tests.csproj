@@ -9,8 +9,6 @@
     <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Fterm.Core\Fterm.Core.csproj" />
-    <ProjectReference Include="..\..\src\Fterm.Protocols.Ssh\Fterm.Protocols.Ssh.csproj" />
-    <ProjectReference Include="..\..\src\Fterm.Protocols.Ftp\Fterm.Protocols.Ftp.csproj" />
+    <ProjectReference Include="..\..\src\Fterm.Protocols.Telnet\Fterm.Protocols.Telnet.csproj" />
   </ItemGroup>
 </Project>
