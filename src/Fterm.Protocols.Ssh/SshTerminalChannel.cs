@@ -49,35 +49,8 @@ public sealed class SshTerminalChannel : ITerminalChannel
         _client = new SshClient(info);
 
         Exception? hostKeyFailure = null;
-        _client.HostKeyReceived += (_, e) =>
-        {
-            var fp = KnownHostsStore.Fingerprint(e.HostKey);
-            var existing = _knownHosts.Check(_options.Host, _options.Port, fp);
-            if (existing == KnownHostResult.Trusted)
-            {
-                e.CanTrust = true;
-                return;
-            }
-
-            var prompt = new HostKeyPrompt(_options.Host, _options.Port, fp, existing);
-            HostKeyDecision decision;
-            try
-            {
-                decision = _hostKeyPolicy.DecideAsync(prompt, ct).GetAwaiter().GetResult();
-            }
-            catch (Exception ex)
-            {
-                hostKeyFailure = ex;
-                e.CanTrust = false;
-                return;
-            }
-
-            if (decision == HostKeyDecision.AcceptAndTrust)
-            {
-                _knownHosts.Trust(_options.Host, _options.Port, fp);
-            }
-            e.CanTrust = decision != HostKeyDecision.Reject;
-        };
+        SshHostKeyValidator.Attach(_client, _options.Host, _options.Port, _knownHosts, _hostKeyPolicy, ct,
+            ex => hostKeyFailure = ex);
 
         try
         {

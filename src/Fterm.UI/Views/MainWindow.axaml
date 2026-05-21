@@ -2,6 +2,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:Fterm.UI.ViewModels"
         xmlns:ctl="using:Fterm.UI.Controls"
+        xmlns:v="using:Fterm.UI.Views"
         x:Class="Fterm.UI.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Title="fterm" Width="1100" Height="720">
@@ -33,6 +34,10 @@
                                  UserInput="OnTerminalUserInput"
                                  UserResize="OnTerminalUserResize" />
         </DataTemplate>
+
+        <DataTemplate x:Key="FileTabTemplate" x:DataType="vm:FileTabViewModel">
+            <v:FileTabContent />
+        </DataTemplate>
     </Window.Resources>
 
     <DockPanel>
@@ -63,6 +68,7 @@
                 <MenuItem Header="接続" Command="{Binding ConnectCommand}" />
             </MenuItem>
             <MenuItem Header="転送(_T)">
+                <MenuItem Header="SFTP を開く" Command="{Binding OpenSftpCommand}" />
                 <MenuItem Header="転送キューを開く" InputGesture="Ctrl+J" />
             </MenuItem>
             <MenuItem Header="設定(_S)">
@@ -82,7 +88,7 @@
                 <Button Content="複製" Command="{Binding DuplicateConnectionCommand}" />
                 <Button Content="削除" Command="{Binding DeleteConnectionCommand}" />
                 <Separator Width="1" Background="#555" Margin="4,0" />
-                <Button Content="SFTP" IsEnabled="False" />
+                <Button Content="SFTP" Command="{Binding OpenSftpCommand}" />
                 <Button Content="マクロ" IsEnabled="False" />
                 <Button Content="設定" IsEnabled="False" />
                 <Separator Width="1" Background="#555" Margin="4,0" />
@@ -136,6 +142,9 @@
                     </DataTemplate>
                     <DataTemplate x:DataType="vm:TerminalTabViewModel">
                         <ContentControl Content="{Binding}" ContentTemplate="{StaticResource TerminalTabTemplate}" />
+                    </DataTemplate>
+                    <DataTemplate x:DataType="vm:FileTabViewModel">
+                        <ContentControl Content="{Binding}" ContentTemplate="{StaticResource FileTabTemplate}" />
                     </DataTemplate>
                 </TabControl.DataTemplates>
             </TabControl>

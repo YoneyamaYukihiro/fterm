@@ -1,0 +1,39 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Fterm.UI.ViewModels"
+             x:Class="Fterm.UI.Views.FilePaneView"
+             x:DataType="vm:FileBrowserViewModel">
+    <DockPanel>
+        <Border DockPanel.Dock="Top" BorderBrush="#333" BorderThickness="0,0,0,1" Padding="4">
+            <Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto">
+                <TextBlock Grid.Column="0" Text="{Binding PaneTitle}" Foreground="#bbb" VerticalAlignment="Center" Margin="2,0,8,0" />
+                <TextBox Grid.Column="1" Text="{Binding CurrentPath}" KeyDown="OnAddressKeyDown" />
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="2" Margin="4,0,0,0">
+                    <Button Content="↑" Command="{Binding GoUpCommand}" ToolTip.Tip="親ディレクトリ (Backspace)" />
+                    <Button Content="⟳" Command="{Binding ReloadCommand}" ToolTip.Tip="再読み込み (F5 を直接押すと転送)" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <Border DockPanel.Dock="Bottom" BorderBrush="#333" BorderThickness="0,1,0,0" Padding="4,2">
+            <TextBlock Text="{Binding StatusText}" Foreground="#aaa" FontSize="11" />
+        </Border>
+
+        <ListBox x:Name="EntryList"
+                 ItemsSource="{Binding Entries}"
+                 SelectedItem="{Binding SelectedEntry}"
+                 DoubleTapped="OnEntryDoubleTapped"
+                 GotFocus="OnGotFocus">
+            <ListBox.ItemTemplate>
+                <DataTemplate x:DataType="vm:FileEntryViewModel">
+                    <Grid ColumnDefinitions="*,90,140,100" Margin="0,1">
+                        <TextBlock Grid.Column="0" Text="{Binding DisplayName}" />
+                        <TextBlock Grid.Column="1" Text="{Binding SizeText}" HorizontalAlignment="Right" Foreground="#aaa" />
+                        <TextBlock Grid.Column="2" Text="{Binding ModifiedText}" Foreground="#aaa" />
+                        <TextBlock Grid.Column="3" Text="{Binding PermissionsText}" FontFamily="Cascadia Mono,Consolas,Menlo,Monospace" FontSize="11" Foreground="#888" />
+                    </Grid>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+    </DockPanel>
+</UserControl>

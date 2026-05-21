@@ -1,0 +1,44 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Fterm.UI.ViewModels"
+             xmlns:v="using:Fterm.UI.Views"
+             xmlns:tr="using:Fterm.Core.Transfer"
+             x:Class="Fterm.UI.Views.FileTabContent"
+             x:DataType="vm:FileTabViewModel"
+             KeyDown="OnKeyDown">
+    <Grid RowDefinitions="*,4,180">
+        <Grid Grid.Row="0" ColumnDefinitions="*,4,*">
+            <v:FilePaneView x:Name="LocalPane" Grid.Column="0" DataContext="{Binding Local}" />
+            <GridSplitter Grid.Column="1" Background="#333" />
+            <v:FilePaneView x:Name="RemotePane" Grid.Column="2" DataContext="{Binding Remote}" />
+        </Grid>
+
+        <GridSplitter Grid.Row="1" Background="#333" />
+
+        <Border Grid.Row="2" BorderBrush="#333" BorderThickness="0,1,0,0">
+            <DockPanel>
+                <Border DockPanel.Dock="Top" Padding="6,3" Background="#252526">
+                    <TextBlock Text="転送キュー" Foreground="#bbb" />
+                </Border>
+                <DataGrid ItemsSource="{Binding Queue.Tasks}" IsReadOnly="True" HeadersVisibility="Column" GridLinesVisibility="Horizontal">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="名前" Binding="{Binding DisplayName}" Width="*" />
+                        <DataGridTextColumn Header="方向" Binding="{Binding Direction}" Width="80" />
+                        <DataGridTextColumn Header="状態" Binding="{Binding State}" Width="100" />
+                        <DataGridTemplateColumn Header="進捗" Width="200">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate x:DataType="tr:TransferTask">
+                                    <Grid>
+                                        <ProgressBar Minimum="0" Maximum="1" Value="{Binding ProgressFraction}" Height="14" />
+                                    </Grid>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTextColumn Header="バイト" Binding="{Binding BytesTransferred}" Width="120" />
+                        <DataGridTextColumn Header="エラー" Binding="{Binding ErrorMessage}" Width="*" />
+                    </DataGrid.Columns>
+                </DataGrid>
+            </DockPanel>
+        </Border>
+    </Grid>
+</UserControl>

@@ -25,6 +25,7 @@ public sealed partial class MainWindowViewModel : ViewModelBase
     [NotifyCanExecuteChangedFor(nameof(DeleteConnectionCommand))]
     [NotifyCanExecuteChangedFor(nameof(DuplicateConnectionCommand))]
     [NotifyCanExecuteChangedFor(nameof(ConnectCommand))]
+    [NotifyCanExecuteChangedFor(nameof(OpenSftpCommand))]
     private Connection? _selectedConnection;
 
     public ObservableCollection<ViewModelBase> Tabs { get; } = [];
@@ -79,6 +80,27 @@ public sealed partial class MainWindowViewModel : ViewModelBase
         catch (Exception ex)
         {
             StatusText = $"接続失敗: {ex.Message}";
+        }
+    }
+
+    [RelayCommand(CanExecute = nameof(HasSelectedConnection))]
+    private async Task OpenSftpAsync()
+    {
+        if (SelectedConnection is null) return;
+        StatusText = $"SFTP 接続中: {SelectedConnection.Name}";
+        try
+        {
+            var tab = await _connector.OpenFileBrowserAsync(SelectedConnection, CancellationToken.None);
+            if (tab is not null)
+            {
+                Tabs.Add(tab);
+                SelectedTab = tab;
+                StatusText = $"SFTP 接続成功: {SelectedConnection.Name}";
+            }
+        }
+        catch (Exception ex)
+        {
+            StatusText = $"SFTP 接続失敗: {ex.Message}";
         }
     }
 
